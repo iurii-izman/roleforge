@@ -26,6 +26,9 @@ node_modules/
 dist/
 build/
 coverage/
+coverage.xml
+.coverage
+.coverage.*
 storybook-static/
 
 # Python

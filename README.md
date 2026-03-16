@@ -24,6 +24,7 @@ RoleForge is an AI-assisted job intelligence pipeline focused on Gmail-first int
 - `tests/` unit tests and fixtures (e.g. `tests/test_gmail_reader.py`)
 - `AGENTS.md` repository-specific guidance for AI coding agents
 - `.env.example` bootstrap-only local environment template
+- `sonar-project.properties` SonarQube/SonarCloud config; [Code quality and trackers](docs/code-quality-and-trackers.md)
 
 ## Development
 
@@ -39,6 +40,7 @@ RoleForge is an AI-assisted job intelligence pipeline focused on Gmail-first int
 - **Runtime entrypoints:** `python -m roleforge.jobs.gmail_poll`, `python -m roleforge.jobs.feed_poll`, `python -m roleforge.jobs.replay`, `python -m roleforge.jobs.digest --dry-run`, `python -m roleforge.jobs.queue --dry-run`. Helpers: `scripts/seed_default_profile.py`, `scripts/run_scoring_once.py`, `scripts/inspect_gmail_message.py`.
 - **Analytics:** Minimal operator reporting via `scripts/report_profile_stats.py` (per-profile match counts, state distribution, high-score matches, `new_in_window` and `high_score_applied` when using `--days`/`--since`). v2 profile seeding: `scripts/seed_profiles_v2.py`. SQL examples: [v2 spec](docs/specs/v2-profiles-and-queue.md#ad-hoc-sql-examples).
 - **Tests:** `python -m pytest tests/ -v` or `PYTHONPATH=. python -m unittest discover -s tests -p "test_*.py" -v`
+- **Coverage (optional):** `pip install -r requirements-dev.txt` then `PYTHONPATH=. coverage run -m unittest discover -s tests -p "test_*.py"` and `coverage xml -o coverage.xml` for Sonar.
 - **Dependencies:** `pip install -r requirements.txt` (psycopg2, Google API client for Gmail, feedparser, PyYAML for feed intake).
 
 ## MVP Verification
@@ -78,5 +80,6 @@ After each secret is in the keyring, remove plaintext copies (see bootstrap doc)
 
 ## Notes
 
-- Post–v2.1 manual checklist (GitHub mirror, profile calibration, next epic): [docs/manual-tasks.md](docs/manual-tasks.md).
+- Project close-out, profile calibration, and next-phase notes: [docs/manual-tasks.md](docs/manual-tasks.md).
 - v3.1 adds optional RSS/Atom feed intake via file registry and kill-switch; Gmail remains the primary MVP path. No official connectors (ATS APIs, Notion, etc.) until v3.2.
+- **Code quality:** SonarQube/SonarCloud config in repo; CI runs tests and coverage and can run Sonar when `SONAR_TOKEN` is set. See [docs/code-quality-and-trackers.md](docs/code-quality-and-trackers.md) for Quality Gate and tracker setup.
