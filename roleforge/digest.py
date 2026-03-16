@@ -32,7 +32,14 @@ def format_digest(
         new = int(sec.get("new_count") or 0)
         shortlisted = int(sec.get("shortlisted_count") or 0)
         later = int(sec.get("review_later_count") or 0)
-        lines.append(f"{name}: {total} total ({new} new, {shortlisted} shortlisted, {later} later)")
+        high = int(sec.get("high_count") or 0)
+        medium = int(sec.get("medium_count") or 0)
+        low = int(sec.get("low_count") or 0)
+        lines.append(
+            f"{name}: {total} total "
+            f"(bands: {high} high, {medium} medium, {low} low; "
+            f"states: {new} new, {shortlisted} shortlisted, {later} later)"
+        )
         highlights = sec.get("highlights") or []
         for h in highlights[:max_highlights_per_profile]:
             title_v = (h.get("title") or "—")[:50]
@@ -65,6 +72,18 @@ def build_digest_sections_from_matches(
         new_count = sum(1 for m in matches if m.get("state") == "new")
         shortlisted_count = sum(1 for m in matches if m.get("state") == "shortlisted")
         review_later_count = sum(1 for m in matches if m.get("state") == "review_later")
+        high_count = 0
+        medium_count = 0
+        low_count = 0
+        for m in matches:
+            score = m.get("score")
+            s = float(score) if score is not None else 0.0
+            if s >= 0.75:
+                high_count += 1
+            elif s >= 0.5:
+                medium_count += 1
+            else:
+                low_count += 1
         sorted_matches = sorted(matches, key=lambda m: (-(float(m.get("score") or 0)), str(m.get("created_at") or "")))
         highlights = []
         for m in sorted_matches[:top_n]:
@@ -74,12 +93,17 @@ def build_digest_sections_from_matches(
                 "company": v.get("company"),
                 "score": m.get("score"),
             })
-        sections.append({
-            "profile_name": profile_name,
-            "total": len(matches),
-            "new_count": new_count,
-            "shortlisted_count": shortlisted_count,
-            "review_later_count": review_later_count,
-            "highlights": highlights,
-        })
+        sections.append(
+            {
+                "profile_name": profile_name,
+                "total": len(matches),
+                "new_count": new_count,
+                "shortlisted_count": shortlisted_count,
+                "review_later_count": review_later_count,
+                "high_count": high_count,
+                "medium_count": medium_count,
+                "low_count": low_count,
+                "highlights": highlights,
+            }
+        )
     return sections

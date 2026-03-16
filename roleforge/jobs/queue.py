@@ -47,7 +47,11 @@ def run_once(*, profile_name: str | None = None, dry_run: bool = False, chat_id:
             log_job_finish(conn, run_id, "success", summary)
             return summary
 
-        text = format_queue_card(next_item["match"], next_item["vacancy"])
+        text = format_queue_card(
+            next_item["match"],
+            next_item["vacancy"],
+            profile_name=resolved_profile_name,
+        )
         summary: dict[str, Any] = {
             "run_id": str(run_id),
             "status": "success",

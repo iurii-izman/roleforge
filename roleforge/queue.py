@@ -26,10 +26,12 @@ def format_queue_card(
     include_explainability: bool = True,
     max_title_len: int = 60,
     max_company_len: int = 30,
+    profile_name: str | None = None,
 ) -> str:
     """
-    Format one queue card: title, company, location, score, link. Optionally explainability snippet.
-    match: profile_match row (score, explainability, id).
+    Format one queue card: title, company, location, score, link, and optional context.
+
+    match: profile_match row (score, explainability, id, optional queue_position/queue_total).
     vacancy: vacancy row (title, company, location, canonical_url or source url).
     """
     title = (vacancy.get("title") or "—")[:max_title_len]
@@ -37,21 +39,33 @@ def format_queue_card(
     location = (vacancy.get("location") or "").strip() or None
     score = match.get("score")
     score_s = f" Score: {score:.2f}" if score is not None else ""
+    queue_pos = match.get("queue_position")
+    queue_total = match.get("queue_total")
     url = vacancy.get("canonical_url") or vacancy.get("url") or ""
-    lines = [
-        title,
-        f"at {company}{score_s}",
-    ]
+    lines = [title, f"at {company}{score_s}"]
+    if profile_name:
+        lines.append(f"Profile: {profile_name}")
     if location:
         lines.append(location)
     if url:
         lines.append(url)
+    if queue_pos is not None and queue_total:
+        lines.append(f"Queue: {int(queue_pos)} of {int(queue_total)}")
     if include_explainability and match.get("explainability"):
         expl = match["explainability"]
         if isinstance(expl, dict):
             pos = expl.get("positive_factors") or []
             if pos:
-                lines.append(f"+ {', '.join(pos)}")
+                factor_labels = {
+                    "title_match": "Title match",
+                    "company_match": "Company match",
+                    "location_match": "Location match",
+                    "keyword_bonus": "Keyword bonus",
+                }
+                pretty = [
+                    factor_labels.get(name, name) for name in pos[:3]
+                ]
+                lines.append(f"+ Why in queue: {', '.join(pretty)}")
     return "\n".join(lines)
 
 
@@ -63,8 +77,23 @@ def get_next_queue_match(conn: Any, profile_id: Any) -> dict[str, Any] | None:
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT pm.id, pm.profile_id, pm.vacancy_id, pm.score, pm.state, pm.explainability, pm.review_rank,
-                   v.id AS v_id, v.canonical_url, v.company, v.title, v.location
+            SELECT
+                pm.id,
+                pm.profile_id,
+                pm.vacancy_id,
+                pm.score,
+                pm.state,
+                pm.explainability,
+                pm.review_rank,
+                v.id AS v_id,
+                v.canonical_url,
+                v.company,
+                v.title,
+                v.location,
+                row_number() OVER (
+                    ORDER BY pm.review_rank ASC NULLS LAST, pm.created_at ASC
+                ) AS queue_position,
+                count(*) OVER () AS queue_total
             FROM profile_matches pm
             JOIN vacancies v ON v.id = pm.vacancy_id
             WHERE pm.profile_id = %s AND pm.state NOT IN ('ignored', 'applied')
@@ -76,7 +105,8 @@ def get_next_queue_match(conn: Any, profile_id: Any) -> dict[str, Any] | None:
         row = cur.fetchone()
     if not row:
         return None
-    # Row: id, profile_id, vacancy_id, score, state, explainability, review_rank, v_id, canonical_url, company, title, location
+    # Row: id, profile_id, vacancy_id, score, state, explainability, review_rank,
+    #      v_id, canonical_url, company, title, location, queue_position, queue_total
     return {
         "match": {
             "id": row[0],
@@ -86,6 +116,8 @@ def get_next_queue_match(conn: Any, profile_id: Any) -> dict[str, Any] | None:
             "state": row[4],
             "explainability": row[5],
             "review_rank": row[6],
+            "queue_position": int(row[12]) if row[12] is not None else None,
+            "queue_total": int(row[13]) if row[13] is not None else None,
         },
         "vacancy": {
             "id": row[7],

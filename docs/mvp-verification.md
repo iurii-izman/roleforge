@@ -103,6 +103,19 @@ python /var/home/user/Projects/roleforge/scripts/seed_default_profile.py
 
 Expected: JSON with `name: "default_mvp"`.
 
+**v2 optional:** To use multiple profiles (`primary_search`, `stretch_geo`), seed v2 presets and re-run scoring:
+
+```bash
+python /var/home/user/Projects/roleforge/scripts/seed_profiles_v2.py
+python /var/home/user/Projects/roleforge/scripts/run_scoring_once.py
+```
+
+Analytics (e.g. last 7 days):
+
+```bash
+python /var/home/user/Projects/roleforge/scripts/report_profile_stats.py --days 7
+```
+
 ## 3. Gmail -> Postgres
 
 Run one Gmail polling cycle:
@@ -191,7 +204,7 @@ cd /var/home/user/Projects/roleforge
 podman exec roleforge-pg psql -U roleforge -d roleforge -c "SELECT p.name, COUNT(*) FROM profile_matches pm JOIN profiles p ON p.id = pm.profile_id GROUP BY p.name ORDER BY p.name;"
 ```
 
-Expected: at least one `new` match for `default_mvp`.
+Expected: at least one `new` match for `default_mvp` (or for `primary_search`/`stretch_geo` if you ran `seed_profiles_v2.py`).
 
 ## 6. Telegram digest
 

@@ -30,12 +30,13 @@ RoleForge is an AI-assisted job intelligence pipeline focused on Gmail-first int
 - **Gmail intake:** See [Gmail intake spec](docs/specs/gmail-intake-spec.md). Reader: `roleforge.gmail_reader.GmailReader`. Persistence: `roleforge.gmail_reader.store.persist_messages`. Retry: `roleforge.gmail_reader.retry.with_retry`; [gmail-retry-policy.md](docs/specs/gmail-retry-policy.md). Run logging: `roleforge.job_runs.log_job_start` / `log_job_finish`.
 - **Parser:** [Parser behavior](docs/specs/parser-behavior.md), [Vacancy schema](docs/specs/vacancy-schema.md). Extraction: `roleforge.parser.extract_candidates`; validation: `roleforge.parser.validate_candidate`. Deterministic, no LLM.
 - **Normalize & dedup:** `roleforge.normalize`, `roleforge.dedup`. [Idempotency and replay](docs/specs/idempotency-and-replay.md).
-- **Profiles & scoring:** [Profile schema](docs/specs/profile-schema.md), [Scoring spec](docs/specs/scoring-spec.md). `roleforge.scoring`, `roleforge.review_ordering` (assign_review_ranks, update_review_ranks_for_profile). Explainability includes positive_factors, negative_factors.
-- **Telegram:** [Telegram interaction spec](docs/specs/telegram-interaction.md). `roleforge.digest`, `roleforge.queue`, `roleforge.delivery_log` (log_telegram_delivery for digest/queue_card). Review actions in queue.apply_review_action.
+- **Profiles & scoring:** [Profile schema](docs/specs/profile-schema.md), [Scoring spec](docs/specs/scoring-spec.md). `roleforge.scoring`, `roleforge.review_ordering` (assign_review_ranks, update_review_ranks_for_profile). Explainability includes positive_factors, negative_factors. v2 presets and queue/digest refinements: [v2 profiles, queue, and analytics](docs/specs/v2-profiles-and-queue.md).
+- **Telegram:** [Telegram interaction spec](docs/specs/telegram-interaction.md). `roleforge.digest`, `roleforge.queue`, `roleforge.delivery_log` (log_telegram_delivery for digest/queue_card). Review actions in queue.apply_review_action. Digest and queue UX in v2 include score bands, queue position, and short “why in queue” explanations.
 - **Job runs:** [Job runs logging](docs/specs/job-runs-logging.md). `roleforge.job_runs`: log_job_start, log_job_finish. Every scheduled job records start/finish and summary.
 - **Retry:** [Retry and fallback policy](docs/specs/retry-and-fallback-policy.md). Gmail: `roleforge.gmail_reader.retry`. Telegram/AI: `roleforge.retry` (generic with_retry, is_transient_telegram/ai, is_permanent_telegram/ai).
 - **Replay:** `roleforge.replay`: replay_one_message(conn, gmail_message_id), replay_date_window(conn, start_date, end_date) — read from gmail_messages, parse, dedup, job_runs logged.
 - **Runtime entrypoints:** `python -m roleforge.jobs.gmail_poll`, `python -m roleforge.jobs.replay`, `python -m roleforge.jobs.digest --dry-run`, `python -m roleforge.jobs.queue --dry-run`. Helpers: `scripts/seed_default_profile.py`, `scripts/run_scoring_once.py`, `scripts/inspect_gmail_message.py`.
+- **Analytics:** Minimal operator reporting via `scripts/report_profile_stats.py` (per-profile match counts, state distribution, high-score matches, `new_in_window` and `high_score_applied` when using `--days`/`--since`). v2 profile seeding: `scripts/seed_profiles_v2.py`. SQL examples: [v2 spec](docs/specs/v2-profiles-and-queue.md#ad-hoc-sql-examples).
 - **Tests:** `python -m pytest tests/ -v` or `PYTHONPATH=. python -m unittest discover -s tests -p "test_*.py" -v`
 - **Dependencies:** `pip install -r requirements.txt` (psycopg2, Google API client for Gmail).
 
@@ -76,4 +77,5 @@ After each secret is in the keyring, remove plaintext copies (see bootstrap doc)
 
 ## Notes
 
-RoleForge intentionally avoids connector sprawl in MVP. There is no IMAP, no RSS, no ATS API work, no Notion hub, and no dual-LLM hot path in the first delivery phase.
+- Post–v2.1 manual checklist (GitHub mirror, profile calibration, next epic): [docs/manual-tasks.md](docs/manual-tasks.md).
+- RoleForge intentionally avoids connector sprawl in MVP. There is no IMAP, no RSS, no ATS API work, no Notion hub, and no dual-LLM hot path in the first delivery phase.

@@ -77,3 +77,25 @@ class TestDigestFormatter(unittest.TestCase):
         self.assertEqual(sections[0]["new_count"], 2)
         self.assertEqual(len(sections[0]["highlights"]), 2)
         self.assertEqual(sections[0]["highlights"][0]["title"], "T1")
+
+    def test_format_digest_includes_bands_and_states_line(self) -> None:
+        sections = [
+            {
+                "profile_name": "primary_search",
+                "total": 4,
+                "new_count": 2,
+                "shortlisted_count": 1,
+                "review_later_count": 1,
+                "high_count": 1,
+                "medium_count": 2,
+                "low_count": 1,
+                "highlights": [{"title": "Role", "company": "Co", "score": 0.8}],
+            },
+        ]
+        text = format_digest(sections)
+        self.assertIn("primary_search", text)
+        self.assertIn("bands:", text)
+        self.assertIn("high", text)
+        self.assertIn("medium", text)
+        self.assertIn("states:", text)
+        self.assertIn("shortlisted", text)

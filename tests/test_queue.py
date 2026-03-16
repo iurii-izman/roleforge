@@ -20,19 +20,31 @@ class TestFormatQueueCard(unittest.TestCase):
     def test_format_queue_card_includes_title_company_score(self) -> None:
         match = {"score": 0.75, "explainability": None}
         vacancy = {"title": "Backend Dev", "company": "Acme", "location": "Remote", "canonical_url": "https://example.com/job"}
-        text = format_queue_card(match, vacancy)
+        text = format_queue_card(match, vacancy, profile_name="primary_search")
         self.assertIn("Backend Dev", text)
         self.assertIn("Acme", text)
         self.assertIn("0.75", text)
         self.assertIn("https://example.com/job", text)
         self.assertIn("Remote", text)
+        self.assertIn("Profile: primary_search", text)
 
     def test_format_queue_card_with_positive_factors(self) -> None:
         match = {"score": 0.8, "explainability": {"positive_factors": ["title_match", "location_match"]}}
         vacancy = {"title": "Engineer", "company": "Foo"}
         text = format_queue_card(match, vacancy)
-        self.assertIn("title_match", text)
-        self.assertIn("location_match", text)
+        self.assertIn("Why in queue", text)
+
+    def test_format_queue_card_shows_position_and_profile(self) -> None:
+        match = {
+            "score": 0.6,
+            "queue_position": 2,
+            "queue_total": 5,
+            "explainability": None,
+        }
+        vacancy = {"title": "Dev", "company": "Bar", "canonical_url": "https://x.co"}
+        text = format_queue_card(match, vacancy, profile_name="stretch_geo")
+        self.assertIn("Queue: 2 of 5", text)
+        self.assertIn("Profile: stretch_geo", text)
 
 
 class TestApplyReviewAction(unittest.TestCase):
@@ -91,7 +103,8 @@ class TestGetNextQueueMatch(unittest.TestCase):
     def test_returns_match_and_vacancy_when_row_exists(self) -> None:
         conn = MagicMock()
         cur = MagicMock()
-        # id, profile_id, vacancy_id, score, state, explainability, review_rank, v_id, canonical_url, company, title, location
+        # id, profile_id, vacancy_id, score, state, explainability, review_rank,
+        # v_id, canonical_url, company, title, location, queue_position, queue_total
         cur.fetchone.return_value = (
             "pm-id",
             "profile-id",
@@ -105,6 +118,8 @@ class TestGetNextQueueMatch(unittest.TestCase):
             "Company",
             "Title",
             "Berlin",
+            1,
+            5,
         )
         conn.cursor.return_value.__enter__ = lambda self: cur
         conn.cursor.return_value.__exit__ = lambda *a: None
@@ -114,3 +129,5 @@ class TestGetNextQueueMatch(unittest.TestCase):
         self.assertEqual(out["match"]["score"], 0.7)
         self.assertEqual(out["vacancy"]["title"], "Title")
         self.assertEqual(out["vacancy"]["company"], "Company")
+        self.assertEqual(out["match"]["queue_position"], 1)
+        self.assertEqual(out["match"]["queue_total"], 5)

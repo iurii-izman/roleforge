@@ -22,6 +22,7 @@ Canonical domains under `service=roleforge`:
 | `db`       | Postgres connection             | `url`, `password`           |
 | `app`      | Application / runtime secrets    | per-app keys                |
 | `linear`   | Linear GraphQL API              | `api_key`                   |
+| `notion`   | Notion API (integrations)        | `api_key`                   |
 
 Use only these domains for MVP so scripts and docs stay aligned. Store and read secrets via `scripts/roleforge-keyring.sh`; do not hardcode or commit secrets.
 
@@ -90,7 +91,17 @@ All keys live under **service=roleforge**. Path = `domain` + `key`. Ниже —
 
 ---
 
-**8–9. Postgres — `db` / `url`, `db` / `password`** (когда будет БД)
+**8. Notion — `notion` / `api_key`**
+
+- **Куда зайти:** [Notion](https://www.notion.so) → **Settings & members** (боковая панель) → **Connections** → **Develop or manage integrations** (или напрямую: `https://www.notion.so/my-integrations`).
+- **Что сделать:** **+ New integration** → задать имя (например, `RoleForge`) → выбрать workspace → в разделе **Capabilities** при необходимости включить доступ к нужным типам контента → **Submit**. На вкладке **Configuration** (или в карточке интеграции) скопировать **Internal Integration Secret** (токен показывается один раз; формат: `secret_...` или `ntn_...`). Чтобы интеграция видела страницы/базы, их нужно вручную подключить: в каждой странице/базе меню **⋯** → **Add connections** → выбрать эту интеграцию.
+- **Ввести в keyring:**  
+  `scripts/roleforge-keyring.sh set notion api_key`  
+  Вставить Internal Integration Secret целиком, Enter.
+
+---
+
+**9–10. Postgres — `db` / `url`, `db` / `password`** (когда будет БД)
 
 Локально на Fedora Atomic удобно поднять Postgres через **Podman** (встроен, rootless, без отдельного демона). Ниже — пошагово.
 
@@ -142,6 +153,7 @@ All keys live under **service=roleforge**. Path = `domain` + `key`. Ниже —
 | `telegram` | `bot_token`     | `scripts/roleforge-keyring.sh set telegram bot_token` |
 | `openai`   | `api_key`       | `scripts/roleforge-keyring.sh set openai api_key` |
 | `anthropic`| `api_key`       | `scripts/roleforge-keyring.sh set anthropic api_key` |
+| `notion`   | `api_key`       | `scripts/roleforge-keyring.sh set notion api_key` |
 | `db`       | `url`           | `scripts/roleforge-keyring.sh set db url` |
 | `db`       | `password`      | `scripts/roleforge-keyring.sh set db password` |
 
