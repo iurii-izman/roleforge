@@ -1,4 +1,4 @@
-# Next Cursor Session (post–EPIC-11)
+# Next Cursor Session (post–TASK-048 / TASK-049)
 
 Работаем в репозитории RoleForge.
 
@@ -15,40 +15,37 @@
 - `docs/specs/gmail-intake-spec.md`
 - `docs/specs/deployment-runtime.md`
 - `docs/specs/v2-profiles-and-queue.md`
+- `docs/specs/v3-feeds-and-connectors.md`
 - `schema/README.md`
 - `.env.example`
 
-## Текущее состояние после EPIC-11 (v3.1 Feed Expansion)
+## Текущее состояние после TASK-048 и TASK-049 (EPIC-12 v3.2)
 
-- **MVP** завершён; EPIC-01 … EPIC-09 закрыты.
-- **EPIC-10** (TASK-044, TASK-045): v2 профили, queue UX, digest bands, аналитика — реализованы.
-- **EPIC-11** (TASK-046, TASK-047) реализован:
-  - Feed registry: `config/feeds.yaml` (id, name, url, type, enabled); `roleforge.feed_registry`.
-  - Kill-switch: `FEED_INTAKE_ENABLED` (env, по умолчанию false); per-feed `enabled` в YAML.
-  - Feed intake: `roleforge.feed_reader`, `python -m roleforge.jobs.feed_poll`; фиды идут в ту же normalize/dedup path; `vacancy_observations` с `feed_source_key` (schema 002).
-  - Тесты: `tests/test_feed_registry.py`, `tests/test_feed_reader.py`; dedup с feed_source_key в `test_normalize_and_dedup.py`.
+- **MVP** и **EPIC-10 / EPIC-11** без изменений (Gmail + feeds, v2 профили, feed registry).
+- **EPIC-12 (v3.2):** контракт коннекторов и первые кандидаты задокументированы (реализация не добавлялась).
+  - **Контракт (TASK-048):** тот же candidate shape, что у Gmail/feeds; источник коннекторов — `feed_source_key` с префиксом `connector:{connector_id}:{external_id}`; без новых таблиц. Enable/disable: `CONNECTOR_INTAKE_ENABLED` + per-connector `enabled` в будущем реестре.
+  - **Кандидаты (TASK-049):** 1) Greenhouse (приоритет), 2) Lever; реализация — только после метрик MVP и решения продукта.
+  - Риски, ограничения и rollout path: `docs/specs/v3-feeds-and-connectors.md` §6.
+- Обновлены: `docs/specs/v3-feeds-and-connectors.md`, `docs/architecture.md`, `docs/manual-tasks.md`, этот файл.
 
 ## Что делать в следующую очередь
 
-1. Проверить репо: `python -m unittest discover -s tests -p "test_*.py" -v` (ожидается `111 tests`, `OK`).
-2. Для feed intake: применить `schema/002_feed_observations.sql`, при необходимости добавить фиды в `config/feeds.yaml`, выставить `FEED_INTAKE_ENABLED=true`, запускать `feed_poll`.
-3. Следующий блок по приоритету: **EPIC-12 (v3.2)** — контракт коннекторов и первые официальные коннекторы; или точечные v2 доработки (queue undo, digest trends).
+1. Проверить репо: `python -m unittest discover -s tests -p "test_*.py" -v`.
+2. Закрыть TASK-048 и TASK-049 в Linear и GitHub (контракт и кандидаты готовы; implementation по решению продукта).
+3. Дальше по приоритету: реализация реестра коннекторов и первого адаптера (Greenhouse) при unblock; или точечные v2 доработки (queue undo, digest trends).
 
 ## Операционные заметки
 
 Подробно: **[docs/manual-tasks.md](../manual-tasks.md)**. Кратко:
 
-1. Держать `profiles` откалиброванными под реальный поиск.
-2. Периодически смотреть `report_profile_stats.py --days 7`.
-3. EPIC-11 (feed registry, kill-switch, feed_poll) реализован; при необходимости — добавить фиды и включить intake.
-4. Для `EPIC-12` не стартовать реализацию коннекторов, пока не определён общий connector contract.
+1. Держать `profiles` откалиброванными; периодически `report_profile_stats.py --days 7`.
+2. EPIC-12: контракт определён; не добавлять код коннекторов до go-ahead и метрик.
 
 ## Ограничения
 
-- Gmail — основной MVP path; опционально RSS/Atom через config/feeds.yaml и feed_poll. Postgres-first; Telegram digest + queue; без официальных коннекторов до v3.2; Telegram text-first.
+- Gmail — основной path; опционально feeds. Коннекторы — только после стабилизации и явного решения; без новых таблиц в v3.2.
 
 ## После завершения следующей сессии
 
-- Обновить Linear first, затем GitHub mirror.
-- Оставить close-out comments при закрытии задач.
-- Перезаписать этот файл (`docs/prompts/next-cursor-session.md`) по фактическому результату.
+- Обновить Linear, затем GitHub mirror.
+- Перезаписать этот файл по фактическому результату.

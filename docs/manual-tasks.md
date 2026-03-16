@@ -16,8 +16,12 @@
 
 ## 2. Следующий блок после EPIC-11
 
-- **EPIC-12 (v3.2):** следующий рекомендуемый блок. Официальные коннекторы — только после стабилизации Gmail и опционально feeds; контракт коннектора в `docs/specs/v3-feeds-and-connectors.md`.
-- Остаться в v2: если нужны queue undo, threshold tuning или digest trends — можно делать точечные доработки.
+- **EPIC-12 (v3.2):** TASK-048 и TASK-049 выполнены (контракт и кандидаты задокументированы).
+  - Контракт: тот же candidate → normalize → dedup → scoring; источник в `feed_source_key` с префиксом `connector:{id}:{external_id}`; без новых таблиц.
+  - Enable/disable: `CONNECTOR_INTAKE_ENABLED` + per-connector `enabled` в будущем реестре.
+  - Первые кандидаты: Greenhouse (приоритет), Lever; реализация — только после метрик MVP и решения продукта.
+  - Риски, ограничения и rollout path: в `docs/specs/v3-feeds-and-connectors.md` §6.
+- Дальше: реализация реестра и первого коннектора по готовности; или точечные v2 доработки (queue undo, digest trends).
 
 ---
 
@@ -61,7 +65,7 @@
 - **Реестр:** `config/feeds.yaml` (id, name, url, type: rss|atom, enabled). Файловый; без новой таблицы.
 - **Kill-switch:** глобальный `FEED_INTAKE_ENABLED` (по умолчанию false); по фиду — `enabled: true/false` в YAML.
 - **Запуск:** `python -m roleforge.jobs.feed_poll`; перед первым прогоном применить `schema/002_feed_observations.sql`.
-- **EPIC-12:** контракт коннектора и приоритет официальных коннекторов — по готовности метрик и решению продукта.
+- **EPIC-12:** контракт и первые кандидаты (Greenhouse, Lever) задокументированы; реализация — по готовности метрик и решению продукта.
 
 ---
 

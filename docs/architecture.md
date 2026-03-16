@@ -52,11 +52,18 @@
 - **Intake path:** Same normalized vacancy schema and dedup path as Gmail; `vacancy_observations` supports either `gmail_message_id` or `feed_source_key` (schema 002).
 - **Job:** `feed_poll`; logs to `job_runs`; no new infra.
 
+## v3.2 Connector contract (EPIC-12, TASK-048–049)
+
+- **Contract:** Minimal connector contract in [v3 feeds and connectors](specs/v3-feeds-and-connectors.md). Connectors emit same candidate shape as Gmail/feeds; source key in `vacancy_observations.feed_source_key` with prefix `connector:{connector_id}:{id}` (no new tables).
+- **Enable/disable:** Env `CONNECTOR_INTAKE_ENABLED` (default false); per-connector `enabled` in future registry file.
+- **First candidates:** Greenhouse (preferred), Lever; implementation only after MVP metrics and product go-ahead.
+- **Rollout:** Doc-only for now; registry and first adapter when unblocked.
+
 ## Explicitly Deferred
 
 - IMAP
 - Outlook / Graph
-- Official ATS APIs (v3.2)
+- Official ATS connector implementation (until v3.2 unblocked)
 - Notion or any second hub
 - n8n
 - Instant alerts by default
@@ -83,3 +90,4 @@
 | 2026-03-15 | Explainability, review ordering, Telegram spec, digest formatter | Accepted | TASK-025: scoring explainability + roleforge/review_ordering.py; TASK-027: docs/specs/telegram-interaction.md; TASK-028: roleforge/digest.py |
 | 2026-03-15 | Queue cards, job_runs contract, retry policy (Gmail/Telegram/AI) | Accepted | TASK-029: roleforge/queue.py; TASK-036: docs/specs/job-runs-logging.md; TASK-037: docs/specs/retry-and-fallback-policy.md, roleforge/retry.py |
 | 2026-03-16 | Telegram delivery log, replay entrypoints, admin alert path | Accepted | TASK-030: roleforge/delivery_log.py; TASK-038: roleforge/replay.py; TASK-039: docs/specs/admin-alert-path.md |
+| 2026-03-16 | v3.2 connector contract and first candidates (TASK-048, TASK-049) | Accepted | docs/specs/v3-feeds-and-connectors.md: minimal contract, feed_source_key convention, enable/disable, Greenhouse/Lever candidates, risks and rollout; no new code |
