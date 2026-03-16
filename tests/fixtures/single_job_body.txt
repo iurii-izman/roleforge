@@ -1,0 +1,6 @@
+Company: Acme Corp
+Title: Senior Engineer
+Location: Remote
+Salary: 100k–120k
+
+Apply here: https://jobs.example.com/acme/senior-engineer

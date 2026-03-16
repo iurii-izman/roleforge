@@ -1,0 +1,5 @@
+Daily digest:
+
+1. https://jobs.example.com/a/1 – Backend Dev at Foo Inc
+2. https://jobs.example.com/b/2 – Frontend at Bar Ltd
+3. https://jobs.example.com/c/3 – Full Stack at Baz Co

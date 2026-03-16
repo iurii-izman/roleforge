@@ -1,50 +1,79 @@
-# Roleforge
+# RoleForge
 
-Roleforge is a new AI-first product and engineering repository. The exact product scope is still being shaped, so this repository now contains the baseline documentation, collaboration rules, and project hygiene we will build on as decisions become clearer.
+RoleForge is an AI-assisted job intelligence pipeline focused on Gmail-first intake, deterministic parsing and scoring, Postgres-first state, and low-noise Telegram delivery.
 
-## Current Status
+## Current Direction
 
-- GitHub repository connected and synchronized locally
-- Baseline repository files added for AI-assisted development
-- Product scope, stack, and MVP definition are still open
-
-## Working Principles
-
-- AI-assisted development by default
-- Small, reviewable changes with explicit assumptions
-- Documentation stays close to implementation
-- No secrets in git; keep credentials in local keyring or `.env`
+- MVP intake source: Gmail only
+- System of record: Postgres
+- Delivery UX: Telegram digest plus review queue
+- AI usage: one primary provider in MVP, narrow ROI-only usage
+- Backlog canon: Linear project `RoleForge MVP`
+- GitHub Projects: execution mirror for repo-linked work
+- Local secret storage: keyring-first under `service=roleforge`
 
 ## Repository Layout
 
-- `.github/` GitHub ownership and pull request templates
-- `docs/` product, architecture, and roadmap notes
+- `.github/` GitHub ownership and issue templates
+- `docs/` product, architecture, roadmap, backlog, and specs (e.g. `docs/specs/gmail-intake-spec.md`)
+- `docs/backlog/` canonical backlog seed and placement guides
+- `docs/prompts/` reusable operating prompts for external agents such as Cursor Autopilot
+- `roleforge/` Python package (`gmail_reader` for Gmail API intake; `parser` for deterministic vacancy extraction)
+- `schema/` Postgres MVP schema and migrations (see `schema/README.md`)
+- `scripts/` helper scripts for keyring and GitHub backlog seeding
+- `tests/` unit tests and fixtures (e.g. `tests/test_gmail_reader.py`)
 - `AGENTS.md` repository-specific guidance for AI coding agents
-- `.env.example` local environment template
+- `.env.example` bootstrap-only local environment template
 
-## Getting Started
+## Development
 
-1. Clone the repository.
-2. Authenticate GitHub access with `gh auth login` if your local setup needs it.
-3. Copy `.env.example` to `.env` and fill only the keys you actually use.
-4. Update `docs/product-brief.md` before building the first feature.
-5. Keep `README.md` and `docs/architecture.md` aligned with major decisions.
+- **Gmail intake:** See [Gmail intake spec](docs/specs/gmail-intake-spec.md). Reader: `roleforge.gmail_reader.GmailReader`. Persistence: `roleforge.gmail_reader.store.persist_messages`. Retry: `roleforge.gmail_reader.retry.with_retry`; [gmail-retry-policy.md](docs/specs/gmail-retry-policy.md). Run logging: `roleforge.job_runs.log_job_start` / `log_job_finish`.
+- **Parser:** [Parser behavior](docs/specs/parser-behavior.md), [Vacancy schema](docs/specs/vacancy-schema.md). Extraction: `roleforge.parser.extract_candidates`; validation: `roleforge.parser.validate_candidate`. Deterministic, no LLM.
+- **Normalize & dedup:** `roleforge.normalize`, `roleforge.dedup`. [Idempotency and replay](docs/specs/idempotency-and-replay.md).
+- **Profiles & scoring:** [Profile schema](docs/specs/profile-schema.md), [Scoring spec](docs/specs/scoring-spec.md). `roleforge.scoring`, `roleforge.review_ordering` (assign_review_ranks, update_review_ranks_for_profile). Explainability includes positive_factors, negative_factors.
+- **Telegram:** [Telegram interaction spec](docs/specs/telegram-interaction.md). `roleforge.digest`, `roleforge.queue`, `roleforge.delivery_log` (log_telegram_delivery for digest/queue_card). Review actions in queue.apply_review_action.
+- **Job runs:** [Job runs logging](docs/specs/job-runs-logging.md). `roleforge.job_runs`: log_job_start, log_job_finish. Every scheduled job records start/finish and summary.
+- **Retry:** [Retry and fallback policy](docs/specs/retry-and-fallback-policy.md). Gmail: `roleforge.gmail_reader.retry`. Telegram/AI: `roleforge.retry` (generic with_retry, is_transient_telegram/ai, is_permanent_telegram/ai).
+- **Replay:** `roleforge.replay`: replay_one_message(conn, gmail_message_id), replay_date_window(conn, start_date, end_date) — read from gmail_messages, parse, dedup, job_runs logged.
+- **Runtime entrypoints:** `python -m roleforge.jobs.gmail_poll`, `python -m roleforge.jobs.replay`, `python -m roleforge.jobs.digest --dry-run`, `python -m roleforge.jobs.queue --dry-run`. Helpers: `scripts/seed_default_profile.py`, `scripts/run_scoring_once.py`, `scripts/inspect_gmail_message.py`.
+- **Tests:** `python -m pytest tests/ -v` or `PYTHONPATH=. python -m unittest discover -s tests -p "test_*.py" -v`
+- **Dependencies:** `pip install -r requirements.txt` (psycopg2, Google API client for Gmail).
 
-## AI Workflow
+## MVP Verification
 
-1. Define the task in an issue, PR, or working note.
-2. Let the AI agent inspect the repository before proposing changes.
-3. Keep outputs small and easy to review.
-4. Record product and architecture decisions in `docs/`.
-5. Review anything touching auth, billing, data, or permissions especially carefully.
+For the current, repo-native verification flow, see [docs/mvp-verification.md](docs/mvp-verification.md). It covers:
 
-## First Next Steps
+- local readiness checks (Podman Postgres, keyring, env),
+- one Gmail -> Postgres -> replay -> scoring -> Telegram dry-run path,
+- parser fixture review against real messages (TASK-021),
+- schema/operator SQL checks (TASK-035).
 
-- Define the product promise and target user
-- Choose the initial tech stack
-- Outline the MVP flow
-- Add the first runnable application skeleton
+## Bootstrap Path
+
+Follow the ordered sequence in [Bootstrap: Access and Secrets](docs/bootstrap-access.md):
+
+1. GitHub auth (`gh auth refresh -s project`).
+2. Linear API key (keyring: `linear` / `api_key`).
+3. Google Cloud project + Gmail OAuth → keyring (`google`: `client_id`, `client_secret`, `refresh_token`).
+4. Telegram bot token → keyring (`telegram` / `bot_token`).
+5. One primary AI provider → keyring (`openai` or `anthropic` / `api_key`).
+6. Seed backlog into Linear and GitHub when access is ready.
+
+After each secret is in the keyring, remove plaintext copies (see bootstrap doc).
+
+## Local Secrets
+
+- Keyring name: **roleforge** (create/use a keyring named `roleforge` in your system keyring).
+- Preferred local secret namespace: `service=roleforge` via `scripts/roleforge-keyring.sh`.
+- See [Bootstrap: Access and Secrets](docs/bootstrap-access.md) for gh auth, Linear token path, and keyring usage.
+- `.env` is a last-resort bootstrap fallback, not the preferred long-term source.
+
+## Backlog Seeding
+
+- Canonical backlog source: `docs/backlog/roleforge-backlog.json`
+- GitHub seeding helper: `scripts/seed_github_backlog.py`
+- Linear seeding guide: `docs/backlog/linear-seeding.md`
 
 ## Notes
 
-This baseline intentionally avoids locking the project into a framework too early. Once we choose a stack, we can add stack-specific tooling, CI, and developer commands without rewriting the repository foundation.
+RoleForge intentionally avoids connector sprawl in MVP. There is no IMAP, no RSS, no ATS API work, no Notion hub, and no dual-LLM hot path in the first delivery phase.

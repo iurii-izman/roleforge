@@ -1,0 +1,7 @@
+{
+  "messages": [
+    {"id": "msg-001", "threadId": "thread-1"}
+  ],
+  "nextPageToken": "token-page-2",
+  "resultSizeEstimate": 3
+}
