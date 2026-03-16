@@ -1,0 +1,14 @@
+# Coverage.py config: for local runs and CI (Sonar uses coverage.xml).
+[run]
+source = roleforge
+branch = false
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+
+[xml]
+output = coverage.xml
