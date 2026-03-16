@@ -1,0 +1,12 @@
+# Feed registry (EPIC-11). RSS/Atom sources for vacancy intake.
+# Each feed is converted to the same normalized vacancy schema as Gmail.
+# Global kill-switch: set FEED_INTAKE_ENABLED=false or omit to disable all feed polling.
+
+# feeds:
+#   - id: example_job_board
+#     name: Example Job Board RSS
+#     url: https://example.com/jobs/feed.xml
+#     type: rss
+#     enabled: true
+
+feeds: []
