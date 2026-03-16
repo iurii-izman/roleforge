@@ -38,8 +38,10 @@ __pycache__/
 # Local AI and tooling state
 .aider*
 .cursor/
+.claude/
 .roo/
 .turbo/
+.benchmarks/
 
 # Misc caches
 .cache/
