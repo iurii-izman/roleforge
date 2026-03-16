@@ -17,10 +17,11 @@ Minimal Postgres MVP schema (TASK-032). Postgres is the only source of truth.
 
 ## Applying
 
-Run migrations in order (e.g. `001_initial_mvp.sql`) against your Postgres database. No migration framework in MVP; apply manually or via a simple script.
+Run migrations in order against your Postgres database. No migration framework in MVP; apply manually or via a simple script.
 
 ```bash
 psql "$DATABASE_URL" -f schema/001_initial_mvp.sql
+psql "$DATABASE_URL" -f schema/002_feed_observations.sql   # for v3.1 feed intake
 ```
 
 ## State transitions

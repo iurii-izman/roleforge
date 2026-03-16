@@ -45,12 +45,18 @@
   - No replicas or heavy infra platforms in MVP; advanced HA/observability are explicitly deferred.
 
 
+## v3.1 Feed intake (EPIC-11)
+
+- **Feed registry:** File-driven; `config/feeds.yaml` (id, name, url, type, enabled). No DB table for registry.
+- **Kill-switch:** Env `FEED_INTAKE_ENABLED` (default false); per-feed `enabled` in YAML.
+- **Intake path:** Same normalized vacancy schema and dedup path as Gmail; `vacancy_observations` supports either `gmail_message_id` or `feed_source_key` (schema 002).
+- **Job:** `feed_poll`; logs to `job_runs`; no new infra.
+
 ## Explicitly Deferred
 
 - IMAP
 - Outlook / Graph
-- RSS / feeds
-- Official ATS APIs
+- Official ATS APIs (v3.2)
 - Notion or any second hub
 - n8n
 - Instant alerts by default

@@ -1,5 +1,5 @@
 """
-Job run logging: insert/update job_runs for gmail_poll, digest, queue, replay.
+Job run logging: insert/update job_runs for gmail_poll, digest, queue, replay, feed_poll.
 
 TASK-014 / TASK-036: run logging so operators see success/failure and summary.
 """
@@ -15,7 +15,7 @@ def log_job_start(conn: Any, job_type: str) -> UUID:
     """
     Insert a running job into job_runs. Returns the run id.
 
-    job_type: 'gmail_poll' | 'digest' | 'queue' | 'replay'
+    job_type: 'gmail_poll' | 'digest' | 'queue' | 'replay' | 'feed_poll'
     """
     with conn.cursor() as cur:
         cur.execute(

@@ -1,38 +1,26 @@
 ## v3.1 Feeds and v3.2 Connectors (EPIC-11, EPIC-12)
 
-Status: Placeholder spec for TASK-046–TASK-047 (v3.1) and TASK-048–TASK-049 (v3.2).
+Status: TASK-046 and TASK-047 implemented (v3.1). TASK-048–TASK-049 (v3.2) placeholder.
 
 These specs are explicitly post-MVP and build on the existing Gmail-only, Postgres-first pipeline. They do not change MVP behavior.
 
-### 1. v3.1 Feed registry and kill-switch (TASK-046)
+### 1. v3.1 Feed registry and kill-switch (TASK-046) — Implemented
 
-Goal: introduce a registry of structured feed sources (e.g. RSS, JSON APIs) while preserving the existing normalized vacancy schema and dedup path.
+Goal: introduce a registry of structured feed sources (e.g. RSS, Atom) while preserving the existing normalized vacancy schema and dedup path.
 
-- **Source registry table** (conceptual; details to be defined later):
-  - stores feed identifier, human-readable name, URL, type (RSS/Atom/JSON), and status,
-  - contains a per-source kill-switch flag that can disable intake from that source without code changes.
-- **Constraints:**
-  - all feeds ingest into the same normalized schema and dedup path used by Gmail,
-  - no new per-source vacancy schema; feeds map onto the existing vacancy fields.
-- **Operational behavior:**
-  - feeds can be enabled/disabled individually,
-  - config is stored in Postgres and used by a feed-polling job; there is no separate configuration store.
+- **Source registry:** File-driven; no DB table. `config/feeds.yaml` lists feeds with `id`, `name`, `url`, `type` (rss|atom), `enabled`. Loaded by `roleforge.feed_registry.load_registry()` / `get_enabled_feeds()`.
+- **Kill-switch:** Global env `FEED_INTAKE_ENABLED` (default false). Per-feed: `enabled: true/false` in YAML.
+- **Constraints:** All feeds ingest into the same normalized schema and dedup path; no new vacancy schema; `vacancy_observations` extended with optional `feed_source_key` (schema 002).
+- **Operational behavior:** Feeds enabled/disabled via YAML; feed_poll job reads registry from file.
 
-Implementation of this registry remains blocked until MVP metrics are available and Gmail intake is stable.
+### 2. v3.1 Feed intake via normalized schema (TASK-047) — Implemented
 
-### 2. v3.1 Feed intake via normalized schema (TASK-047)
+Goal: feed intake reuses the same normalization and dedup pipeline as Gmail.
 
-Goal: any future feed intake must reuse the same normalization and dedup pipeline, not create a parallel system.
+- **Ingestion flow:** `python -m roleforge.jobs.feed_poll`. Loads enabled feeds from `config/feeds.yaml`, fetches RSS/Atom via `feedparser`, converts each entry to candidate shape with `feed_source_key = "{feed_id}:{entry_id}"`. New entries only (seen keys from `vacancy_observations.feed_source_key`). Runs `group_by_dedup_key` and `persist_deduped`; observations with `feed_source_key` use the same get-or-create vacancy path.
+- **Idempotency:** Stable entry id from entry.id / link / title; duplicate entries skipped; dedup by URL/title/company unchanged.
+- **No replay of feed body:** Feed item payload is not stored; only normalized vacancies and observation links. Re-run feed_poll to re-ingest; idempotent via observation unique.
 
-- **Ingestion flow (high level):**
-  - a feed polling job fetches new feed entries per source,
-  - entries are converted to the same internal candidate representation used by Gmail parsing,
-  - normalization and dedup logic remains unchanged; only the source adapter is different.
-- **Idempotency and replay:**
-  - feed entries must carry a stable identifier per source (e.g. entry URL or GUID),
-  - the existing idempotency rules (no duplicate vacancies) apply across all sources.
-
-The actual feed connectors (code and schemas) are deferred until Gmail intake’s effectiveness is measured.
 
 ### 3. v3.2 Connector contract (TASK-048)
 

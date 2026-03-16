@@ -30,14 +30,13 @@ def normalize_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
 def group_by_dedup_key(
     candidates: list[dict[str, Any]],
     *,
-    source_fields: tuple[str, ...] = ("gmail_message_id", "fragment_key", "raw_snippet"),
+    source_fields: tuple[str, ...] = ("gmail_message_id", "feed_source_key", "fragment_key", "raw_snippet"),
 ) -> list[tuple[dict[str, Any], list[dict[str, Any]]]]:
     """
     Normalize candidates and group by dedup key. Each group = one vacancy + N sources.
 
-    Each candidate may include gmail_message_id, fragment_key, raw_snippet (for persistence).
-    Returns list of (vacancy_dict, list of source_dict). vacancy_dict has schema fields
-    (no fragment_key); source_dict has gmail_message_id, fragment_key, raw_snippet.
+    Each candidate may include gmail_message_id (Gmail) or feed_source_key (feeds), fragment_key, raw_snippet.
+    Returns list of (vacancy_dict, list of source_dict). source_dict has gmail_message_id and/or feed_source_key.
     """
     normalized = [normalize_candidate(c) for c in candidates]
     groups: dict[tuple[str, str, str], tuple[dict[str, Any], list[dict[str, Any]]]] = {}
@@ -53,6 +52,7 @@ def group_by_dedup_key(
         }
         source = {
             "gmail_message_id": c.get("gmail_message_id"),
+            "feed_source_key": c.get("feed_source_key"),
             "fragment_key": c.get("fragment_key", "0"),
             "raw_snippet": c.get("raw_snippet"),
         }
@@ -123,17 +123,26 @@ def persist_deduped(
             vacancy_ids.append(vacancy_id)
             for src in sources:
                 gmid = src.get("gmail_message_id")
+                feed_key = src.get("feed_source_key")
                 fk = src.get("fragment_key", "0")
                 snippet = src.get("raw_snippet")
-                if not gmid:
-                    continue
-                cur.execute(
-                    """
-                    INSERT INTO vacancy_observations (vacancy_id, gmail_message_id, fragment_key, raw_snippet)
-                    VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (vacancy_id, gmail_message_id, fragment_key) DO NOTHING
-                    """,
-                    (vacancy_id, gmid, fk, snippet),
-                )
+                if gmid:
+                    cur.execute(
+                        """
+                        INSERT INTO vacancy_observations (vacancy_id, gmail_message_id, fragment_key, raw_snippet)
+                        VALUES (%s, %s, %s, %s)
+                        ON CONFLICT (vacancy_id, gmail_message_id, fragment_key) DO NOTHING
+                        """,
+                        (vacancy_id, gmid, fk, snippet),
+                    )
+                elif feed_key:
+                    cur.execute(
+                        """
+                        INSERT INTO vacancy_observations (vacancy_id, feed_source_key, fragment_key, raw_snippet)
+                        VALUES (%s, %s, %s, %s)
+                        ON CONFLICT (vacancy_id, feed_source_key, fragment_key) DO NOTHING
+                        """,
+                        (vacancy_id, feed_key, fk, snippet),
+                    )
     conn.commit()
     return vacancy_ids

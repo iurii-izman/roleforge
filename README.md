@@ -35,10 +35,11 @@ RoleForge is an AI-assisted job intelligence pipeline focused on Gmail-first int
 - **Job runs:** [Job runs logging](docs/specs/job-runs-logging.md). `roleforge.job_runs`: log_job_start, log_job_finish. Every scheduled job records start/finish and summary.
 - **Retry:** [Retry and fallback policy](docs/specs/retry-and-fallback-policy.md). Gmail: `roleforge.gmail_reader.retry`. Telegram/AI: `roleforge.retry` (generic with_retry, is_transient_telegram/ai, is_permanent_telegram/ai).
 - **Replay:** `roleforge.replay`: replay_one_message(conn, gmail_message_id), replay_date_window(conn, start_date, end_date) — read from gmail_messages, parse, dedup, job_runs logged.
-- **Runtime entrypoints:** `python -m roleforge.jobs.gmail_poll`, `python -m roleforge.jobs.replay`, `python -m roleforge.jobs.digest --dry-run`, `python -m roleforge.jobs.queue --dry-run`. Helpers: `scripts/seed_default_profile.py`, `scripts/run_scoring_once.py`, `scripts/inspect_gmail_message.py`.
+- **Feed intake (v3.1):** [v3 feeds spec](docs/specs/v3-feeds-and-connectors.md). File registry: `config/feeds.yaml`. Kill-switch: `FEED_INTAKE_ENABLED` (default off). `roleforge.feed_registry`, `roleforge.feed_reader`; feed entries go through the same normalize/dedup path as Gmail; observations use `feed_source_key` in `vacancy_observations`.
+- **Runtime entrypoints:** `python -m roleforge.jobs.gmail_poll`, `python -m roleforge.jobs.feed_poll`, `python -m roleforge.jobs.replay`, `python -m roleforge.jobs.digest --dry-run`, `python -m roleforge.jobs.queue --dry-run`. Helpers: `scripts/seed_default_profile.py`, `scripts/run_scoring_once.py`, `scripts/inspect_gmail_message.py`.
 - **Analytics:** Minimal operator reporting via `scripts/report_profile_stats.py` (per-profile match counts, state distribution, high-score matches, `new_in_window` and `high_score_applied` when using `--days`/`--since`). v2 profile seeding: `scripts/seed_profiles_v2.py`. SQL examples: [v2 spec](docs/specs/v2-profiles-and-queue.md#ad-hoc-sql-examples).
 - **Tests:** `python -m pytest tests/ -v` or `PYTHONPATH=. python -m unittest discover -s tests -p "test_*.py" -v`
-- **Dependencies:** `pip install -r requirements.txt` (psycopg2, Google API client for Gmail).
+- **Dependencies:** `pip install -r requirements.txt` (psycopg2, Google API client for Gmail, feedparser, PyYAML for feed intake).
 
 ## MVP Verification
 
@@ -78,4 +79,4 @@ After each secret is in the keyring, remove plaintext copies (see bootstrap doc)
 ## Notes
 
 - Post–v2.1 manual checklist (GitHub mirror, profile calibration, next epic): [docs/manual-tasks.md](docs/manual-tasks.md).
-- RoleForge intentionally avoids connector sprawl in MVP. There is no IMAP, no RSS, no ATS API work, no Notion hub, and no dual-LLM hot path in the first delivery phase.
+- v3.1 adds optional RSS/Atom feed intake via file registry and kill-switch; Gmail remains the primary MVP path. No official connectors (ATS APIs, Notion, etc.) until v3.2.

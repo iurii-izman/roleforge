@@ -16,7 +16,7 @@
 
 - **Dedup key:** Normalized URL (primary), then normalized title + company. See `roleforge.normalize.dedup_key` and `roleforge.dedup.group_by_dedup_key`.
 - **Persistence:** When persisting grouped candidates, we **get-or-create** vacancy by `canonical_url`: if a vacancy with that URL already exists, we reuse its id and only add new `vacancy_observations`. So the same job link from different emails or digest fragments maps to one vacancy row and many observation rows.
-- **Table:** `vacancy_observations` has UNIQUE `(vacancy_id, gmail_message_id, fragment_key)`. The same fragment is not linked twice; insert uses `ON CONFLICT ... DO NOTHING`.
+- **Table:** `vacancy_observations` has unique constraints for Gmail `(vacancy_id, gmail_message_id, fragment_key)` and for feeds `(vacancy_id, feed_source_key, fragment_key)` (schema 002). The same fragment is not linked twice; insert uses `ON CONFLICT ... DO NOTHING`. Either `gmail_message_id` or `feed_source_key` is set per row.
 
 ---
 

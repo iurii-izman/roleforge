@@ -79,6 +79,20 @@ class TestGroupByDedupKey(unittest.TestCase):
         vac, sources = grouped[0]
         self.assertEqual(len(sources), 2)
 
+    def test_feed_source_key_in_group(self) -> None:
+        c = {
+            "canonical_url": "https://example.com/1",
+            "title": "Engineer",
+            "feed_source_key": "feed1:entry-1",
+            "fragment_key": "0",
+            "raw_snippet": "snippet",
+        }
+        grouped = group_by_dedup_key([c])
+        self.assertEqual(len(grouped), 1)
+        vac, sources = grouped[0]
+        self.assertEqual(sources[0]["feed_source_key"], "feed1:entry-1")
+        self.assertIsNone(sources[0].get("gmail_message_id"))
+
 
 class TestPersistDeduped(unittest.TestCase):
     """TASK-020: persist grouped (mock conn)."""

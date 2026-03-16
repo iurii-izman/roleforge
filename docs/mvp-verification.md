@@ -54,6 +54,12 @@ cd /var/home/user/Projects/roleforge
 podman exec -i roleforge-pg psql -U roleforge -d roleforge < /var/home/user/Projects/roleforge/schema/001_initial_mvp.sql
 ```
 
+Optional (v3.1 feed intake): apply feed observations migration so feed_poll can persist feed-sourced vacancies:
+
+```bash
+podman exec -i roleforge-pg psql -U roleforge -d roleforge < /var/home/user/Projects/roleforge/schema/002_feed_observations.sql
+```
+
 ### 0.2. Keyring
 
 Check the current secret presence:
