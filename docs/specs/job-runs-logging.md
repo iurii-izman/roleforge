@@ -8,7 +8,7 @@
 
 - **Start:** Before doing work, call `roleforge.job_runs.log_job_start(conn, job_type)` → returns `run_id`.
 - **Finish:** On exit (success or exception path), call `roleforge.job_runs.log_job_finish(conn, run_id, status, summary)`.
-- **job_type:** One of `gmail_poll` | `digest` | `queue` | `replay` | `feed_poll`.
+- **job_type:** One of `gmail_poll` | `digest` | `queue` | `replay` | `feed_poll` | `alert` | `batch`.
 
 ---
 
@@ -21,6 +21,8 @@
 | **queue**   | `cards_sent`, `profile_id` (if single-profile) | `error_type`, `message` |
 | **replay**  | `messages_processed`, `vacancies_created`, `window_start`, `window_end` | `error_type`, `message` |
 | **feed_poll** | `feeds_checked`, `entries_processed`, `vacancies_created` | `feed_id`, `message` |
+| **alert**     | `eligible_count`, `alerts_sent`, optional `dry_run`       | `message` |
+| **batch**     | `eligible_count`, `batches_sent`, `matches_sent`, optional `dry_run` | `message` |
 
 All summaries are JSON-serializable dicts. No secrets in `summary`.
 

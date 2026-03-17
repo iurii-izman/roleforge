@@ -68,7 +68,7 @@ CREATE INDEX IF NOT EXISTS idx_profile_matches_review_rank ON profile_matches (p
 -- Telegram: digest and queue sends for audit.
 CREATE TABLE IF NOT EXISTS telegram_deliveries (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  delivery_type TEXT NOT NULL,           -- 'digest' | 'queue_card' | 'alert' | 'admin_alert'
+  delivery_type TEXT NOT NULL,           -- 'digest' | 'queue_card' | 'alert' | 'admin_alert' | 'batch'
   payload      JSONB,
   sent_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -84,10 +84,10 @@ CREATE TABLE IF NOT EXISTS review_actions (
 
 CREATE INDEX IF NOT EXISTS idx_review_actions_profile_match ON review_actions (profile_match_id);
 
--- Job runs: polling, digest, queue, replay outcomes.
+-- Job runs: polling, delivery, replay, feed, alert, and batch outcomes.
 CREATE TABLE IF NOT EXISTS job_runs (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  job_type    TEXT NOT NULL,             -- 'gmail_poll' | 'digest' | 'queue' | 'replay'
+  job_type    TEXT NOT NULL,             -- 'gmail_poll' | 'digest' | 'queue' | 'replay' | 'feed_poll' | 'alert' | 'batch'
   started_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   finished_at TIMESTAMPTZ,
   status      TEXT NOT NULL DEFAULT 'running' CHECK (status IN ('running', 'success', 'failure')),

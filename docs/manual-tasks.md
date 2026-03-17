@@ -8,8 +8,8 @@
 - Канонический backlog расширен до `EPIC-20` в [roleforge-backlog.json](/var/home/user/Projects/roleforge/docs/backlog/roleforge-backlog.json).
 - `EPIC-13` закрыт: scoring больше не placeholder, профили расширены, калибровка выполнена на локальных данных.
 - `EPIC-20` закрыт: structured logging, admin alert и cost-governance docs реализованы и покрыты тестами.
-- `TASK-056` и `TASK-058` закрыты как подготовка delivery-intelligence слоя.
-- Следующий implementation-спринт подготовлен в [next-session.md](/var/home/user/Projects/roleforge/docs/prompts/next-session.md) и начинается с `TASK-057`.
+- `TASK-056`, `TASK-058`, `TASK-057`, `TASK-059`, `TASK-060` закрыты. `EPIC-14` (v4 Delivery Intelligence) завершён: alert job, batch job, обновлён telegram-interaction.md.
+- Следующий блок: `EPIC-15` (AI Enrichment) или `EPIC-16` (Scheduler); см. [next-session.md](/var/home/user/Projects/roleforge/docs/prompts/next-session.md).
 
 ## Autopilot blocks
 
@@ -42,16 +42,13 @@
 
 ### Block C: EPIC-14 Delivery Intelligence
 
-Следующий активный блок.
+Закрыт.
 
 - `TASK-056` delivery_mode contract and defaults
 - `TASK-058` add `alert` delivery type support
 - `TASK-057` implement `alert.py`
-- `TASK-059` micro-batch delivery
-- `TASK-060` Telegram interaction spec update
-
-Зависимость:
-- product-decision по `TASK-056` уже зафиксирован; следующий кодовый шаг — `TASK-057`
+- `TASK-059` micro-batch delivery job (`roleforge/jobs/batch.py`)
+- `TASK-060` Telegram interaction spec update (digest/queue/alert/batch coexistence)
 
 ### Block D: EPIC-15 AI Enrichment
 
@@ -215,13 +212,12 @@ python /var/home/user/Projects/roleforge/scripts/report_profile_stats.py --days 
 
 ## Recommended order
 
-1. `EPIC-14` (`TASK-057`)
-2. `EPIC-14` (`TASK-059`, `TASK-060`)
-3. `TASK-062` decision
-4. `EPIC-15`
-5. `EPIC-16`
-6. `TASK-071` decision
-7. `EPIC-17`
-8. `EPIC-18`
-9. `TASK-093` decision
-10. `EPIC-19`
+1. ~~`EPIC-14`~~ (closed)
+2. `TASK-062` decision (AI enrichment contract) → then `EPIC-15`
+3. `EPIC-15`
+4. `EPIC-16`
+5. `TASK-071` decision
+6. `EPIC-17`
+7. `EPIC-18`
+8. `TASK-093` decision
+9. `EPIC-19`
