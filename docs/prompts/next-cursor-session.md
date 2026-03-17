@@ -6,49 +6,17 @@
 - README.md
 - docs/architecture.md
 - docs/roadmap.md
-- docs/research-v4-plus.md
 - docs/backlog/roleforge-backlog.json
 - docs/manual-tasks.md
-- docs/specs/job-runs-logging.md
-- docs/specs/cost-governance.md
-- docs/specs/v3-feeds-and-connectors.md
+- docs/specs/ai-enrichment-contract.md
 
 Текущее состояние:
-- `EPIC-13` закрыт.
-- `EPIC-14` закрыт: delivery_mode, alert job, batch job и Telegram delivery spec завершены.
-- `EPIC-20` закрыт.
-- Следующий лучший блок: `TASK-062`, при хорошем результате можно сразу закрыть и `TASK-067`.
+- EPIC-15 закрыт (ai_metadata, enrichment.py, run_enrichment_for_high_scores, prompts, ai_cost_usd в summary).
+- Следующий блок: EPIC-16 (Scheduler) или enrichment job entrypoint.
 
-Что нужно сделать:
-1. Выполнить `TASK-062`: определить AI enrichment contract для `EPIC-15`.
-2. Если research получается цельным, сразу закрыть и `TASK-067`: задокументировать AI governance rules в `docs/architecture.md`.
-3. Не делать runtime AI implementation в этой сессии. Это research/spec sprint.
+Что сделать сначала:
+1. Обновить Linear: TASK-061, TASK-063–TASK-066 и EPIC-15 в Done.
+2. Выполнить EPIC-16 (TASK-068 research → TASK-069 scheduler → TASK-070 docs) или добавить `roleforge/jobs/enrichment.py`, вызывающий run_enrichment_for_high_scores и log_job_finish с summary (включая ai_cost_usd).
+3. Прогнать pytest; обновить Linear/GitHub; сгенерировать next-session prompt.
 
-Что должен содержать результат:
-- provider/model decision или shortlist с понятным default
-- input contract для enrichment
-- output contract для enrichment
-- gating rule: на каких score bands enrichment запускается
-- timeout / retry / fallback policy без блокировки deterministic pipeline
-- cost guardrails и связь с `ai_cost_usd`
-- prompt/versioning expectations
-- privacy and logging guardrails
-- clear path к `TASK-061`, `TASK-063`, `TASK-064`, `TASK-065`, `TASK-066`
-
-Что проверить:
-- `python -m pytest tests/ -v` для регрессии
-- консистентность между `research-v4-plus.md`, `architecture.md`, `manual-tasks.md`, backlog JSON
-- отсутствие premature AI code
-
-Tracker discipline:
-- Linear — канон.
-- GitHub — зеркало.
-- Перед стартом перевести `TASK-062` в `In Progress`.
-- `TASK-067` переводить в `In Progress` только если реально берёшь governance docs в этой же сессии.
-- Закрывать только реально завершённые задачи.
-
-После завершения:
-- Обновить Linear first, затем GitHub mirror.
-- Если `TASK-062` закрыт, следующий prompt должен вести в implementation path `TASK-061` + `TASK-063`.
-- Если `TASK-062` не закрыт, следующий prompt должен быть продолжением `TASK-062`.
-- В финальном handoff вставить полный новый Next Prompt inline.
+Ограничения: Gmail-only MVP; Postgres-first; one primary AI provider; AI только post-scoring.

@@ -60,6 +60,17 @@
 - **First candidates:** Greenhouse (preferred), Lever; implementation only after MVP metrics and product go-ahead.
 - **Rollout:** Doc-only for now; registry and first adapter when unblocked.
 
+## AI governance (v4+, TASK-067)
+
+Rules for all AI use in the pipeline (enrichment, future inbox classification, etc.):
+
+- **Provider and model:** One primary provider per deployment (`PRIMARY_AI_PROVIDER`). Model must be pinned to an explicit version (e.g. `gpt-4o-mini`, `claude-3-5-haiku-20241022`); never use "latest" in production. See [AI enrichment contract](specs/ai-enrichment-contract.md).
+- **Prompt versioning:** Prompts are versioned in code (`roleforge/prompts/`). Each prompt has a `PROMPT_VERSION`; when the prompt changes, the version changes. Stored AI output includes `prompt_version` (and optional `prompt_hash`) for audit and re-enrichment.
+- **Output tracking:** AI-generated content is stored in bounded fields (e.g. `vacancies.ai_metadata`). Shape and semantics are defined in the relevant spec; no open-ended payloads.
+- **Failure behavior:** AI calls must not block the deterministic pipeline. On transient failure: retry with bounded backoff; then skip and continue. On permanent failure: skip and log. Delivery and scoring proceed without AI output when enrichment fails.
+- **Cost:** Every job that calls the AI must set `ai_cost_usd` in `job_runs.summary`. Monthly review uses the query in [Cost governance](specs/cost-governance.md). Per-run caps (e.g. max enrichments per run) limit cost exposure.
+- **Privacy and logging:** Do not send operator PII to the AI. Do not log full prompts or full model responses; log only counts, cost, and high-level metadata (model, prompt_version).
+
 ## Explicitly Deferred
 
 - IMAP
@@ -99,3 +110,5 @@
 | 2026-03-17 | v6 market monitoring: HH.ru API first, monitor registry in config/monitors.yaml | Accepted | Official public API (no auth), same candidate shape via monitor:hh:{id} source key; MONITOR_INTAKE_ENABLED kill-switch; no HTML scraping ever; see docs/research-v4-plus.md §4.3 |
 | 2026-03-17 | v7 web UI: FastAPI + Jinja2 + HTMX, Bearer token auth, no build system | Accepted | Single Python process; Telegram stays as primary delivery channel; web UI handles configuration, analytics, bulk queue, application workspace; see docs/research-v4-plus.md §4.4 |
 | 2026-03-17 | Source key convention extended to monitors: monitor:{type}:{ext_id} in vacancy_observations.feed_source_key | Accepted | No schema change needed; consistent with connector:{id}:{ext_id} convention; feed_source_key is already the generic non-Gmail source field |
+| 2026-03-18 | AI enrichment contract (TASK-062): provider/model shortlist, input/output, gating, timeout/retry/fallback, cost and prompt versioning | Accepted | docs/specs/ai-enrichment-contract.md; clear path to TASK-061, TASK-063–TASK-066; no runtime AI in this session |
+| 2026-03-18 | AI governance rules documented in architecture (TASK-067) | Accepted | New section "AI governance (v4+)" in docs/architecture.md; model pinning, prompt versioning, failure behavior, cost, privacy |

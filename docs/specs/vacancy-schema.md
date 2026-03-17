@@ -17,6 +17,7 @@
 | `salary_raw` | TEXT | no | Salary as seen (e.g. "100k–120k", "€50k"). |
 | `parse_confidence` | NUMERIC(5,4) | no | 0..1; parser confidence for this row. |
 | `created_at` | TIMESTAMPTZ | yes | Insert time. |
+| `ai_metadata` | JSONB | no | AI enrichment output (summary, model, prompt_version, enriched_at). See [AI enrichment contract](ai-enrichment-contract.md). |
 
 All content fields are nullable; normalization and dedup may fill or merge later. At least one of `canonical_url`, `title`, or `company` is typically present for a useful candidate.
 

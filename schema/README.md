@@ -22,6 +22,7 @@ Run migrations in order against your Postgres database. No migration framework i
 ```bash
 psql "$DATABASE_URL" -f schema/001_initial_mvp.sql
 psql "$DATABASE_URL" -f schema/002_feed_observations.sql   # for v3.1 feed intake
+psql "$DATABASE_URL" -f schema/003_ai_metadata.sql         # for v4 AI enrichment
 ```
 
 ## State transitions

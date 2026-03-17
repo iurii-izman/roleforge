@@ -9,7 +9,9 @@
 - `EPIC-13` закрыт: scoring больше не placeholder, профили расширены, калибровка выполнена на локальных данных.
 - `EPIC-20` закрыт: structured logging, admin alert и cost-governance docs реализованы и покрыты тестами.
 - `TASK-056`, `TASK-058`, `TASK-057`, `TASK-059`, `TASK-060` закрыты. `EPIC-14` (v4 Delivery Intelligence) завершён: alert job, batch job, обновлён telegram-interaction.md.
-- Следующий блок: `EPIC-15` (AI Enrichment) или `EPIC-16` (Scheduler); см. [next-session.md](/var/home/user/Projects/roleforge/docs/prompts/next-session.md).
+- `TASK-062` (AI enrichment contract) и `TASK-067` (AI governance в architecture) закрыты; контракт в [docs/specs/ai-enrichment-contract.md](specs/ai-enrichment-contract.md).
+- `EPIC-15` (AI Enrichment) реализация закрыта: TASK-061 (миграция ai_metadata), TASK-063 (enrichment.py), TASK-064 (run_enrichment_for_high_scores), TASK-065 (ai_cost_usd в summary), TASK-066 (prompts/enrichment.py).
+- Следующий блок: `EPIC-16` (Scheduler) или отдельный job entrypoint для enrichment; см. [next-session.md](prompts/next-session.md).
 
 ## Autopilot blocks
 
@@ -52,17 +54,16 @@
 
 ### Block D: EPIC-15 AI Enrichment
 
-Автопилот возможен после решения по контракту ИИ.
+Закрыт.
 
-- `TASK-061` add `ai_metadata`
-- `TASK-063` enrichment module
-- `TASK-064` post-scoring enrichment step
-- `TASK-065` `ai_cost_usd` in job summaries
-- `TASK-066` prompt versioning
-- `TASK-067` AI governance docs
+- ~~`TASK-061`~~ add `ai_metadata` (schema/003_ai_metadata.sql)
+- ~~`TASK-063`~~ enrichment module (roleforge/enrichment.py)
+- ~~`TASK-064`~~ post-scoring step (run_enrichment_for_high_scores)
+- ~~`TASK-065`~~ `ai_cost_usd` in job summary (returned by run_enrichment_for_high_scores)
+- ~~`TASK-066`~~ prompt versioning (roleforge/prompts/enrichment.py)
+- ~~`TASK-067`~~ AI governance docs — done
 
-Зависимость:
-- сначала нужен contract по `TASK-062`
+Опционально: отдельный job entrypoint (e.g. `python -m roleforge.jobs.enrichment`) для запуска enrichment после scoring.
 
 ### Block E: EPIC-16 Scheduler
 
@@ -127,17 +128,13 @@
 ### Decision 2: AI enrichment contract
 
 Связанный backlog:
-- `TASK-062`
+- `TASK-062` (closed)
 
-Нужно решить:
-- какой provider/model использовать
-- какие поля ИИ генерирует
-- на каких score bands enrichment включается
-- месячный budget / cost ceiling
-- fallback при ошибке ИИ
+Статус:
+- решено и задокументировано в [docs/specs/ai-enrichment-contract.md](specs/ai-enrichment-contract.md): provider/model shortlist (OpenAI gpt-4o-mini / Anthropic Haiku), input/output contract, gating по score ≥ 0.75, timeout/retry/fallback без блокировки pipeline, cost guardrails и ai_cost_usd, prompt versioning, privacy/logging.
 
-После решения:
-- можно делать `EPIC-15`
+Следствие:
+- можно делать реализацию `EPIC-15` (TASK-061, TASK-063–TASK-066)
 
 ### Decision 3: Application lifecycle state machine
 
@@ -213,9 +210,9 @@ python /var/home/user/Projects/roleforge/scripts/report_profile_stats.py --days 
 ## Recommended order
 
 1. ~~`EPIC-14`~~ (closed)
-2. `TASK-062` decision (AI enrichment contract) → then `EPIC-15`
-3. `EPIC-15`
-4. `EPIC-16`
+2. ~~`TASK-062`~~ (closed), ~~`TASK-067`~~ (closed)
+3. ~~`EPIC-15`~~ (closed)
+4. `EPIC-16` (Scheduler) или enrichment job entrypoint
 5. `TASK-071` decision
 6. `EPIC-17`
 7. `EPIC-18`
