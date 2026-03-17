@@ -56,6 +56,81 @@ class TestComputeScore(unittest.TestCase):
         _, expl_full = compute_score({}, {"title": "A", "company": "B", "location": "Remote"})
         self.assertLess(expl_empty["score"], expl_full["score"])
 
+    def test_title_match_uses_profile_keywords(self) -> None:
+        vacancy = {"title": "Senior Python Backend Engineer"}
+        config_with_kw = {"weights": DEFAULT_WEIGHTS, "keywords": ["python", "backend"]}
+        config_no_kw = {"weights": DEFAULT_WEIGHTS}
+
+        score_with_kw, expl_with_kw = compute_score(config_with_kw, vacancy)
+        score_no_kw, expl_no_kw = compute_score(config_no_kw, vacancy)
+
+        self.assertGreater(score_with_kw, score_no_kw)
+        self.assertEqual(expl_with_kw["dimensions"]["title_match"], 1.0)
+        self.assertEqual(expl_no_kw["dimensions"]["title_match"], 0.5)
+
+    def test_company_match_prefers_preferred_companies(self) -> None:
+        vacancy = {"title": "Engineer", "company": "Acme Corp"}
+        pref_config = {
+            "weights": DEFAULT_WEIGHTS,
+            "preferred_companies": ["Acme"],
+        }
+        neutral_config = {
+            "weights": DEFAULT_WEIGHTS,
+        }
+        excluded_config = {
+            "weights": DEFAULT_WEIGHTS,
+            "hard_filters": {"exclude_companies": ["Acme"]},
+        }
+
+        score_pref, expl_pref = compute_score(pref_config, vacancy)
+        score_neutral, expl_neutral = compute_score(neutral_config, vacancy)
+        score_excluded, expl_excluded = compute_score(excluded_config, vacancy)
+
+        self.assertGreater(score_pref, score_neutral)
+        self.assertEqual(expl_excluded["dimensions"]["company_match"], 0.0)
+        self.assertLess(score_excluded, score_neutral)
+
+    def test_keyword_bonus_uses_skills(self) -> None:
+        vacancy = {
+            "title": "Senior Backend Engineer",
+            "company": "Example",
+            "location": "Remote",
+            "description": "Stack: Python, Django, PostgreSQL, Kubernetes.",
+        }
+        with_skills = {
+            "weights": DEFAULT_WEIGHTS,
+            "skills": ["python", "django"],
+        }
+        without_skills = {
+            "weights": DEFAULT_WEIGHTS,
+            "skills": [],
+        }
+
+        _, expl_with = compute_score(with_skills, vacancy)
+        _, expl_without = compute_score(without_skills, vacancy)
+
+        self.assertGreater(
+            expl_with["dimensions"]["keyword_bonus"],
+            expl_without["dimensions"]["keyword_bonus"],
+        )
+
+    def test_config_with_delivery_mode_ignored_by_scoring(self) -> None:
+        """TASK-056: delivery_mode in config is ignored by scoring; no error."""
+        vacancy = {"title": "Engineer", "company": "Acme", "location": "Remote"}
+        config = {
+            "weights": DEFAULT_WEIGHTS,
+            "delivery_mode": {
+                "alert_enabled": False,
+                "immediate_threshold": 0.80,
+                "batch_enabled": False,
+                "batch_threshold": 0.55,
+                "batch_interval_minutes": 30,
+            },
+        }
+        score, _ = compute_score(config, vacancy)
+        self.assertGreaterEqual(score, 0.0)
+        self.assertLessEqual(score, 1.0)
+
 
 class TestScoreVacancyForProfiles(unittest.TestCase):
     """One vacancy, multiple profiles."""

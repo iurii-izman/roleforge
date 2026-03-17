@@ -22,6 +22,26 @@ def _get_config(config: dict[str, Any], key: str, default: Any = None) -> Any:
     return config.get(key) if config else default
 
 
+def _normalize_text(value: str | None) -> str:
+    if not value:
+        return ""
+    return value.strip().lower()
+
+
+def _tokenize(value: str | None) -> set[str]:
+    """
+    Very small, dependency-free tokenizer: lowercase and split on whitespace
+    and simple punctuation boundaries. Good enough for keyword overlap.
+    """
+    if not value:
+        return set()
+    text = _normalize_text(value)
+    # Replace a few common punctuation separators with spaces
+    for ch in [",", "/", "-", "|", "(", ")", "[", "]", ":", ";"]:
+        text = text.replace(ch, " ")
+    return {t for t in text.split() if t}
+
+
 def apply_hard_filters(profile_config: dict[str, Any], vacancy: dict[str, Any]) -> bool:
     """
     Return True if vacancy passes all hard filters for this profile.
@@ -29,15 +49,15 @@ def apply_hard_filters(profile_config: dict[str, Any], vacancy: dict[str, Any]) 
     hard = _get_config(profile_config, "hard_filters") or {}
     locations = hard.get("locations") or []
     if locations and vacancy.get("location"):
-        loc = (vacancy.get("location") or "").strip().lower()
+        loc = _normalize_text(vacancy.get("location"))
         if loc and not any(loc in (s or "").lower() for s in locations):
             return False
     exclude_companies = hard.get("exclude_companies") or []
-    company = (vacancy.get("company") or "").strip().lower()
+    company = _normalize_text(vacancy.get("company"))
     if company and any(ex.lower() in company for ex in exclude_companies):
         return False
     exclude_titles = hard.get("exclude_titles") or []
-    title = (vacancy.get("title") or "").strip().lower()
+    title = _normalize_text(vacancy.get("title"))
     if title and any(ex.lower() in title for ex in exclude_titles):
         return False
     min_conf = hard.get("min_parse_confidence")
@@ -47,20 +67,69 @@ def apply_hard_filters(profile_config: dict[str, Any], vacancy: dict[str, Any]) 
     return True
 
 
-def _dimension_title_match(vacancy: dict[str, Any], _profile: dict) -> float:
-    """MVP: 0.5 if title present, else 0."""
-    return 0.5 if (vacancy.get("title") or "").strip() else 0.0
+def _dimension_title_match(vacancy: dict[str, Any], profile_config: dict[str, Any]) -> float:
+    """
+    Real title match:
+    - If profile provides keywords, compute normalized overlap between title tokens and keyword tokens.
+    - If no keywords configured, fall back to neutral MVP behavior: 0.5 if title present, else 0.
+    """
+    title = vacancy.get("title") or ""
+    title_tokens = _tokenize(title)
+    keywords: list[str] = _get_config(profile_config, "keywords") or []
+
+    if not keywords:
+        return 0.5 if title_tokens else 0.0
+
+    if not title_tokens:
+        return 0.0
+
+    hits = 0
+    for kw in keywords:
+        kw_tokens = _tokenize(kw)
+        if not kw_tokens:
+            continue
+        if title_tokens.intersection(kw_tokens):
+            hits += 1
+
+    if hits == 0:
+        return 0.0
+
+    return max(0.0, min(1.0, hits / float(len(keywords))))
 
 
-def _dimension_company_match(vacancy: dict[str, Any], _profile: dict) -> float:
-    """MVP: 0.5 if company present, else 0."""
-    return 0.5 if (vacancy.get("company") or "").strip() else 0.0
+def _dimension_company_match(vacancy: dict[str, Any], profile_config: dict[str, Any]) -> float:
+    """
+    Company preference scoring:
+    - If company is excluded via hard_filters, always 0.0.
+    - If preferred_companies configured and vacancy company matches one of them → 1.0.
+    - If preferred_companies is empty:
+        - 0.5 if company present (neutral-but-positive signal),
+        - 0.0 if company missing.
+    """
+    company = _normalize_text(vacancy.get("company"))
+    if not company:
+        return 0.0
+
+    hard = _get_config(profile_config, "hard_filters") or {}
+    exclude_companies = hard.get("exclude_companies") or []
+    if any(ex.lower() in company for ex in exclude_companies):
+        return 0.0
+
+    preferred: list[str] = _get_config(profile_config, "preferred_companies") or []
+    if preferred:
+        if any(p.lower() in company for p in preferred):
+            return 1.0
+        # Explicit preferences exist but this company is not preferred → treat as neutral 0.0
+        return 0.0
+
+    # No explicit preferences → keep previous neutral behavior.
+    return 0.5
 
 
 def _dimension_location_match(vacancy: dict[str, Any], profile_config: dict[str, Any]) -> float:
     """1.0 if vacancy location in profile preferred locations, else 0."""
     locations = (_get_config(profile_config, "hard_filters") or {}).get("locations") or []
-    loc = (vacancy.get("location") or "").strip().lower()
+    loc = _normalize_text(vacancy.get("location"))
     if not loc:
         return 0.0
     if not locations:
@@ -68,9 +137,43 @@ def _dimension_location_match(vacancy: dict[str, Any], profile_config: dict[str,
     return 1.0 if any(loc in (s or "").lower() for s in locations) else 0.0
 
 
-def _dimension_keyword_bonus(_vacancy: dict[str, Any], _profile: dict) -> float:
-    """MVP: 0."""
-    return 0.0
+def _dimension_keyword_bonus(vacancy: dict[str, Any], profile_config: dict[str, Any]) -> float:
+    """
+    Keyword bonus based on profile skills:
+    - skills: list of strings in profile.config.skills
+    - text surface: title + company + location + optional description/body if present
+    Score is normalized hits/len(skills), capped to [0, 1].
+    If no skills configured or no text, bonus is 0.0.
+    """
+    skills: list[str] = _get_config(profile_config, "skills") or []
+    if not skills:
+        return 0.0
+
+    surface = " ".join(
+        [
+            vacancy.get("title") or "",
+            vacancy.get("company") or "",
+            vacancy.get("location") or "",
+            vacancy.get("description") or "",
+            vacancy.get("body") or "",
+        ]
+    )
+    text = _normalize_text(surface)
+    if not text:
+        return 0.0
+
+    hits = 0
+    for skill in skills:
+        skill_norm = _normalize_text(skill)
+        if not skill_norm:
+            continue
+        if skill_norm in text:
+            hits += 1
+
+    if hits == 0:
+        return 0.0
+
+    return max(0.0, min(1.0, hits / float(len(skills))))
 
 
 def compute_score(

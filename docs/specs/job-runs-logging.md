@@ -24,6 +24,14 @@
 
 All summaries are JSON-serializable dicts. No secrets in `summary`.
 
+#### Optional: AI cost (TASK-104)
+
+When a job runs AI enrichment (e.g. vacancy summarizer), the summary may include:
+
+- **`ai_cost_usd`** (number): estimated or actual cost in USD for that run (e.g. from provider usage/cost APIs). Used for cost governance and monthly review; see [Cost governance](cost-governance.md).
+
+If present, it is included in structured logs only in sanitized form (no raw tokens or request payloads). Reporting and guardrails are documented in the cost-governance spec.
+
 ---
 
 ## 3. Visibility

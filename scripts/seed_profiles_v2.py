@@ -9,11 +9,10 @@ concrete, but still conservative, presets:
 - stretch_geo: same intent, but looser geography / remote preference
 
 All profiles reuse the existing profiles.config JSONB shape:
-- hard_filters: locations, exclude_titles, exclude_companies, min_parse_confidence
-- weights: per-dimension weights for the shared scoring engine
-- min_score: optional per-profile floor for queue/digest inclusion
+- hard_filters, weights, min_score, keywords, skills, preferred_companies
+- delivery_mode (TASK-056): alert_enabled, immediate_threshold, batch_enabled, batch_threshold, batch_interval_minutes (defaults: both flags false)
 
-No schema changes are introduced; this is a pure data/seed helper.
+No schema changes; this is a pure data/seed helper.
 """
 
 from __future__ import annotations
@@ -29,6 +28,15 @@ if str(REPO_ROOT) not in sys.path:
 
 from roleforge.runtime import connect_db  # type: ignore
 from roleforge.scoring import DEFAULT_WEIGHTS  # type: ignore
+
+# delivery_mode defaults: digest-only until operator opts in (TASK-056)
+DEFAULT_DELIVERY_MODE: dict[str, Any] = {
+    "alert_enabled": False,
+    "immediate_threshold": 0.80,
+    "batch_enabled": False,
+    "batch_threshold": 0.55,
+    "batch_interval_minutes": 30,
+}
 
 
 def _profile_row(name: str, config: dict[str, Any]) -> dict[str, Any]:
@@ -46,9 +54,14 @@ def _build_profiles() -> list[dict[str, Any]]:
     default_mvp = _profile_row(
         "default_mvp",
         {
+            "intent": "Baseline MVP profile with no strict filters; useful as a safety net.",
             "hard_filters": {},
             "weights": DEFAULT_WEIGHTS,
             "min_score": None,
+            "keywords": [],
+            "skills": [],
+            "preferred_companies": [],
+            "delivery_mode": DEFAULT_DELIVERY_MODE,
         },
     )
 
@@ -64,6 +77,25 @@ def _build_profiles() -> list[dict[str, Any]]:
             },
             "weights": DEFAULT_WEIGHTS,
             "min_score": 0.5,
+            # Title-level keywords that should be present for strong matches.
+            "keywords": [
+                "backend",
+                "python",
+                "engineer",
+                "developer",
+            ],
+            # Skills used for keyword_bonus; these may appear in title, body, or location text.
+            "skills": [
+                "python",
+                "django",
+                "fastapi",
+                "postgresql",
+                "asyncio",
+                "distributed systems",
+            ],
+            # Optional explicit company preferences; safe to keep empty by default.
+            "preferred_companies": [],
+            "delivery_mode": DEFAULT_DELIVERY_MODE,
         },
     )
 
@@ -79,6 +111,25 @@ def _build_profiles() -> list[dict[str, Any]]:
             },
             "weights": DEFAULT_WEIGHTS,
             "min_score": 0.35,
+            "keywords": [
+                "backend",
+                "python",
+                "senior",
+                "staff",
+                # Allow a broader stretch into adjacent stacks present
+                # in the current dataset (e.g. Bitrix/PHP roles).
+                "bitrix",
+            ],
+            "skills": [
+                "python",
+                "microservices",
+                "kubernetes",
+                "docker",
+                "postgresql",
+                "bitrix",
+            ],
+            "preferred_companies": [],
+            "delivery_mode": DEFAULT_DELIVERY_MODE,
         },
     )
 

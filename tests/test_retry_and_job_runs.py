@@ -92,14 +92,16 @@ class TestJobRuns(unittest.TestCase):
 
     def test_log_job_finish_updates_row(self) -> None:
         mock_cur = MagicMock()
+        mock_cur.fetchone.return_value = ("gmail_poll",)  # for SELECT job_type after UPDATE
         mock_conn = MagicMock()
         mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cur)
         mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
         log_job_finish(mock_conn, uuid4(), "failure", {"error_type": "permanent", "message": "auth"})
-        mock_conn.commit.assert_called_once()
-        call_args = mock_cur.execute.call_args[0]
-        self.assertIn("failure", call_args[1])
-        self.assertIn("error_type", call_args[1][1])
+        mock_conn.commit.assert_called()
+        # First execute is UPDATE job_runs SET ... status, summary
+        update_call = mock_cur.execute.call_args_list[0][0]
+        self.assertIn("failure", update_call[1])
+        self.assertIn("error_type", update_call[1][1])
 
 
 if __name__ == "__main__":

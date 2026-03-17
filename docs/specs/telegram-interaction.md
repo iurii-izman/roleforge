@@ -9,7 +9,8 @@
 - **MVP does not push** a Telegram message per vacancy or per match. No "new job" notification for each item.
 - **Digest** is the primary delivery: one (or few) scheduled messages that summarize matches. User opens digest and chooses what to review.
 - **Queue** is pull-based: user requests "next" (or opens queue) and receives one card at a time. No automatic push of each card.
-- **Exceptional alerts** (e.g. critical failure, admin) are out of scope for default UX; see TASK-039 if needed later.
+- **Exceptional alerts** (e.g. critical failure, admin) use the admin alert path (TASK-039, TASK-103); see [Admin alert path](admin-alert-path.md).
+- **Threshold-triggered vacancy alerts (v4):** Optional per-profile. When `profile.config.delivery_mode.alert_enabled` is true, matches with score ≥ `immediate_threshold` can trigger an immediate Telegram message (see `roleforge/jobs/alert.py` when implemented). Default is off; see [Profile schema](profile-schema.md) for `delivery_mode` and noise policy.
 
 ---
 

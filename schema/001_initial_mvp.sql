@@ -68,7 +68,7 @@ CREATE INDEX IF NOT EXISTS idx_profile_matches_review_rank ON profile_matches (p
 -- Telegram: digest and queue sends for audit.
 CREATE TABLE IF NOT EXISTS telegram_deliveries (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  delivery_type TEXT NOT NULL,           -- 'digest' | 'queue_card'
+  delivery_type TEXT NOT NULL,           -- 'digest' | 'queue_card' | 'alert' | 'admin_alert'
   payload      JSONB,
   sent_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()

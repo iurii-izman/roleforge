@@ -6,13 +6,16 @@
 
 - Исследование `v4+` зафиксировано в [research-v4-plus.md](/var/home/user/Projects/roleforge/docs/research-v4-plus.md).
 - Канонический backlog расширен до `EPIC-20` в [roleforge-backlog.json](/var/home/user/Projects/roleforge/docs/backlog/roleforge-backlog.json).
-- Следующий implementation-спринт уже подготовлен в [next-session.md](/var/home/user/Projects/roleforge/docs/prompts/next-session.md).
+- `EPIC-13` закрыт: scoring больше не placeholder, профили расширены, калибровка выполнена на локальных данных.
+- `EPIC-20` закрыт: structured logging, admin alert и cost-governance docs реализованы и покрыты тестами.
+- `TASK-056` и `TASK-058` закрыты как подготовка delivery-intelligence слоя.
+- Следующий implementation-спринт подготовлен в [next-session.md](/var/home/user/Projects/roleforge/docs/prompts/next-session.md) и начинается с `TASK-057`.
 
 ## Autopilot blocks
 
 ### Block A: EPIC-13 Scoring Engine Enhancement
 
-Можно делать на автопилоте сразу.
+Закрыт.
 
 - `TASK-050` real title keyword overlap
 - `TASK-051` real company preference scoring
@@ -27,10 +30,11 @@
 
 ### Block B: EPIC-20 Observability quick wins
 
-Можно делать параллельно или сразу после `EPIC-13`.
+Закрыт.
 
 - `TASK-102` structured JSON logging
 - `TASK-103` consecutive-failure admin alerts
+- `TASK-104` ai_cost_usd reporting contract docs
 - `TASK-105` monthly cost report doc/query
 
 Зависимости:
@@ -38,15 +42,16 @@
 
 ### Block C: EPIC-14 Delivery Intelligence
 
-Частично на автопилоте после `EPIC-13`.
+Следующий активный блок.
 
+- `TASK-056` delivery_mode contract and defaults
 - `TASK-058` add `alert` delivery type support
 - `TASK-057` implement `alert.py`
 - `TASK-059` micro-batch delivery
 - `TASK-060` Telegram interaction spec update
 
 Зависимость:
-- сначала нужен product-decision по `TASK-056`
+- product-decision по `TASK-056` уже зафиксирован; следующий кодовый шаг — `TASK-057`
 
 ### Block D: EPIC-15 AI Enrichment
 
@@ -114,15 +119,12 @@
 Связанный backlog:
 - `TASK-056`
 
-Нужно решить:
-- нужен ли instant alert path в `v4`
-- какой `immediate_threshold`
-- нужен ли micro-batch path
-- какой `batch_threshold`
-- какой `batch_interval_minutes`
-- что остаётся ролью digest
+Статус:
+- решение уже принято и задокументировано в `profiles.config.delivery_mode`
+- digest остаётся default path
+- immediate alerts и micro-batch включаются per profile
 
-После решения:
+Следствие:
 - можно делать `EPIC-14`
 
 ### Decision 2: AI enrichment contract
@@ -213,15 +215,13 @@ python /var/home/user/Projects/roleforge/scripts/report_profile_stats.py --days 
 
 ## Recommended order
 
-1. `EPIC-13`
-2. `EPIC-20` quick wins
-3. `TASK-056` decision
-4. `EPIC-14`
-5. `TASK-062` decision
-6. `EPIC-15`
-7. `EPIC-16`
-8. `TASK-071` decision
-9. `EPIC-17`
-10. `EPIC-18`
-11. `TASK-093` decision
-12. `EPIC-19`
+1. `EPIC-14` (`TASK-057`)
+2. `EPIC-14` (`TASK-059`, `TASK-060`)
+3. `TASK-062` decision
+4. `EPIC-15`
+5. `EPIC-16`
+6. `TASK-071` decision
+7. `EPIC-17`
+8. `EPIC-18`
+9. `TASK-093` decision
+10. `EPIC-19`

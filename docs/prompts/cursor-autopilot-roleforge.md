@@ -132,6 +132,8 @@ When done:
 - close or mark `Done` in Linear first
 - close the GitHub issue or move its project item to done state second
 - leave matching close-out comments in both systems
+- rewrite `docs/prompts/next-session.md` for the actual next iteration
+- include the full new next-session prompt inline in the final handoff under a clear `Next Prompt` heading, not only as a file update
 
 ## 7. Comment Protocol
 

@@ -28,6 +28,7 @@
 5. Each vacancy is matched against multiple profiles through one shared scoring model.
 6. Telegram receives compact digests and queue-entry actions.
 7. Review actions and run logs are persisted in Postgres.
+8. **Observability:** JSON structured logs to stdout from job start/finish ([Structured logging](specs/structured-logging.md)); consecutive-failure admin alert to Telegram when a job type has 3 consecutive failures ([Admin alert path](specs/admin-alert-path.md)).
 
 ## Deployment and Runtime (EPIC-09)
 

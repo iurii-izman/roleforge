@@ -40,6 +40,21 @@
 - **hard_filters:** Vacancy must satisfy these to be **eligible** (create a profile_match). If any filter fails, the vacancy is not scored for this profile (or score is 0 and no match row).
 - **weights:** Per-dimension weights for the shared formula. Dimensions are fixed (title, company, location, keyword); only weights vary by profile.
 - **min_score:** Optional. Matches below this score may still be stored with state `new` but can be deprioritized in digest/queue (priority buckets). Omit or null = no floor.
+- **delivery_mode** (optional, v4): Controls threshold-triggered alerts and optional micro-batch delivery. See below.
+
+#### delivery_mode (TASK-056)
+
+When present, `config.delivery_mode` is an object:
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `alert_enabled` | boolean | `false` | If true, matches with score ≥ `immediate_threshold` may trigger an immediate Telegram alert (see alert job). |
+| `immediate_threshold` | number (0–1) | `0.80` | Score threshold for immediate alert when `alert_enabled` is true. |
+| `batch_enabled` | boolean | `false` | If true, matches in the band `[batch_threshold, immediate_threshold)` may be sent in a micro-batch. |
+| `batch_threshold` | number (0–1) | `0.55` | Lower bound for batch band. |
+| `batch_interval_minutes` | number | `30` | Interval for flushing the batch (used when batch job runs). |
+
+**Noise policy:** Both `alert_enabled` and `batch_enabled` default to `false`. Digest-only behavior is unchanged until the operator opts in per profile. See [Telegram interaction](telegram-interaction.md) for alert mode.
 
 ---
 
@@ -52,6 +67,7 @@ When creating a new profile, use defaults so config is never empty:
 | `hard_filters` | `{}` (no hard filters; all vacancies eligible) |
 | `weights` | `{ "title_match": 1.0, "company_match": 0.8, "location_match": 0.6, "keyword_bonus": 0.5 }` |
 | `min_score` | `null` (no minimum) |
+| `delivery_mode` | `{ "alert_enabled": false, "immediate_threshold": 0.80, "batch_enabled": false, "batch_threshold": 0.55, "batch_interval_minutes": 30 }` (digest-only until opted in) |
 
 Eligibility (hard filters) is separate from **digest highlighting** (which uses score and review_rank). See [Scoring spec](scoring-spec.md).
 
