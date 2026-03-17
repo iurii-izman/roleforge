@@ -10,8 +10,10 @@
 - `EPIC-20` закрыт: structured logging, admin alert и cost-governance docs реализованы и покрыты тестами.
 - `TASK-056`, `TASK-058`, `TASK-057`, `TASK-059`, `TASK-060` закрыты. `EPIC-14` (v4 Delivery Intelligence) завершён: alert job, batch job, обновлён telegram-interaction.md.
 - `TASK-062` (AI enrichment contract) и `TASK-067` (AI governance в architecture) закрыты; контракт в [docs/specs/ai-enrichment-contract.md](specs/ai-enrichment-contract.md).
-- `EPIC-15` (AI Enrichment) реализация закрыта: TASK-061 (миграция ai_metadata), TASK-063 (enrichment.py), TASK-064 (run_enrichment_for_high_scores), TASK-065 (ai_cost_usd в summary), TASK-066 (prompts/enrichment.py).
-- Следующий блок: `EPIC-16` (Scheduler) или отдельный job entrypoint для enrichment; см. [next-session.md](prompts/next-session.md).
+- `EPIC-15` (AI Enrichment) закрыта: TASK-061 (миграция ai_metadata), TASK-063 (enrichment.py), TASK-064 (run_enrichment_for_high_scores), TASK-065 (ai_cost_usd в summary), TASK-066 (prompts/enrichment.py).
+- `EPIC-16` (Scheduler) закрыт: TASK-068 (research), TASK-069 (scheduler), TASK-070 (docs).
+- `EPIC-18` (Market Monitoring) core path закрыт: TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092; optional salary tail TASK-089/TASK-090 остаётся deferred.
+- Следующий блок: `EPIC-17` decision block (начинать только после TASK-071 state machine).
 
 ## Autopilot blocks
 
@@ -67,11 +69,11 @@
 
 ### Block E: EPIC-16 Scheduler
 
-Можно брать после стабилизации `EPIC-13` и `EPIC-14`.
+Закрыт.
 
-- `TASK-068` scheduler research
-- `TASK-069` scheduler implementation
-- `TASK-070` runtime docs
+- ~~`TASK-068`~~ scheduler research
+- ~~`TASK-069`~~ scheduler implementation (`roleforge/scheduler.py`)
+- ~~`TASK-070`~~ runtime docs (architecture, README, deployment contract, scheduler spec)
 
 ### Block F: EPIC-17 Application Lifecycle
 
@@ -85,19 +87,22 @@
 
 ### Block G: EPIC-18 Market Monitoring
 
-Стартует после `EPIC-13`, но лучше после стабилизации delivery path.
+Core path closed. HH.ru monitoring now exists as a safe, reversible sweep over the same normalized vacancy pipeline. Optional salary modeling stays deferred until there is an explicit product reason.
 
-- `TASK-084` HH.ru research
-- `TASK-085` monitor registry
-- `TASK-086` HH.ru adapter
-- `TASK-087` monitor poll
-- `TASK-088` kill-switch
-- `TASK-091` ToS/rate-limit docs
-- `TASK-092` market monitoring spec
+- ~~`TASK-084`~~ HH.ru research
+- ~~`TASK-085`~~ monitor registry
+- ~~`TASK-086`~~ HH.ru adapter
+- ~~`TASK-087`~~ monitor poll
+- ~~`TASK-088`~~ kill-switch
+- ~~`TASK-091`~~ ToS/rate-limit docs
+- ~~`TASK-092`~~ market monitoring spec
 
 Опциональный хвост:
 - `TASK-089`
 - `TASK-090`
+
+Зависимости:
+- `TASK-089`/`TASK-090` остаются blocked-by-product-decision
 
 ### Block H: EPIC-19 Web UI
 
@@ -212,7 +217,8 @@ python /var/home/user/Projects/roleforge/scripts/report_profile_stats.py --days 
 1. ~~`EPIC-14`~~ (closed)
 2. ~~`TASK-062`~~ (closed), ~~`TASK-067`~~ (closed)
 3. ~~`EPIC-15`~~ (closed)
-4. `EPIC-16` (Scheduler) или enrichment job entrypoint
+4. ~~`EPIC-16`~~ (closed)
+5. `EPIC-17` / `EPIC-18`
 5. `TASK-071` decision
 6. `EPIC-17`
 7. `EPIC-18`

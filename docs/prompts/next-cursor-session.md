@@ -8,15 +8,20 @@
 - docs/roadmap.md
 - docs/backlog/roleforge-backlog.json
 - docs/manual-tasks.md
-- docs/specs/ai-enrichment-contract.md
+- docs/specs/scheduler.md
+- docs/specs/deployment-runtime.md
 
 Текущее состояние:
-- EPIC-15 закрыт (ai_metadata, enrichment.py, run_enrichment_for_high_scores, prompts, ai_cost_usd в summary).
-- Следующий блок: EPIC-16 (Scheduler) или enrichment job entrypoint.
+- EPIC-13, EPIC-14, EPIC-15, EPIC-16 и EPIC-20 закрыты.
+- По EPIC-18 закрываются TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092; сам EPIC-18 остаётся открытым из-за deferred salary tail TASK-089/TASK-090.
+- Scheduler реализован в `roleforge/scheduler.py` и задокументирован в `docs/specs/scheduler.md`.
+- HH.ru market monitoring now lives in `config/monitors.yaml`, `roleforge/monitor_registry.py`, `roleforge/monitors/hh.py`, and `roleforge/jobs/monitor_poll.py`.
+- Следующий блок: EPIC-17 decision block, начиная с TASK-071 state machine research.
 
 Что сделать сначала:
-1. Обновить Linear: TASK-061, TASK-063–TASK-066 и EPIC-15 в Done.
-2. Выполнить EPIC-16 (TASK-068 research → TASK-069 scheduler → TASK-070 docs) или добавить `roleforge/jobs/enrichment.py`, вызывающий run_enrichment_for_high_scores и log_job_finish с summary (включая ai_cost_usd).
-3. Прогнать pytest; обновить Linear/GitHub; сгенерировать next-session prompt.
+1. Обновить Linear: EPIC-16, TASK-068, TASK-069, TASK-070, TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092 в Done.
+2. Не закрывать EPIC-18 до решения по TASK-089/TASK-090.
+3. Если нужен следующий безопасный блок, начать EPIC-17 с TASK-071 decision / schema research.
+4. Прогнать pytest; обновить Linear/GitHub; сгенерировать next-session prompt.
 
 Ограничения: Gmail-only MVP; Postgres-first; one primary AI provider; AI только post-scoring.

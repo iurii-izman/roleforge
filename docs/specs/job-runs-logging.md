@@ -21,6 +21,7 @@
 | **queue**   | `cards_sent`, `profile_id` (if single-profile) | `error_type`, `message` |
 | **replay**  | `messages_processed`, `vacancies_created`, `window_start`, `window_end` | `error_type`, `message` |
 | **feed_poll** | `feeds_checked`, `entries_processed`, `vacancies_created` | `feed_id`, `message` |
+| **monitor_poll** | `monitors_checked`, `monitors_ran`, `monitor_failures`, `entries_processed`, `vacancies_created`, `monitor_ids`, `monitor_results` | `monitor_id`, `message` |
 | **alert**     | `eligible_count`, `alerts_sent`, optional `dry_run`       | `message` |
 | **batch**     | `eligible_count`, `batches_sent`, `matches_sent`, optional `dry_run` | `message` |
 

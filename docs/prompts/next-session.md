@@ -9,31 +9,43 @@
 - docs/research-v4-plus.md
 - docs/backlog/roleforge-backlog.json
 - docs/manual-tasks.md
-- docs/specs/ai-enrichment-contract.md
+- docs/specs/scheduler.md
+- docs/specs/deployment-runtime.md
 - docs/specs/job-runs-logging.md
-- docs/specs/cost-governance.md
 
 Текущее состояние после прошлой сессии:
-- EPIC-13, EPIC-14, EPIC-20 закрыты.
-- EPIC-15 (AI Enrichment) закрыт: TASK-061 (миграция ai_metadata), TASK-062/067 (контракт и governance), TASK-063 (enrichment.py), TASK-064 (run_enrichment_for_high_scores), TASK-065 (ai_cost_usd в summary), TASK-066 (prompts/enrichment.py). Тесты 160 passed.
+- EPIC-13, EPIC-14, EPIC-15, EPIC-16 и EPIC-20 закрыты.
+- По EPIC-18 реализован и проверен core path: TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092. Salary tail TASK-089/TASK-090 остаётся открытым, поэтому сам EPIC-18 ещё не закрывается.
+- Scheduler реализован в `roleforge/scheduler.py` как in-process stdlib loop; `python -m roleforge.scheduler` — опциональный coordinated entrypoint.
+- HH.ru market monitoring now exists via `config/monitors.yaml`, `roleforge/monitor_registry.py`, `roleforge/monitors/hh.py`, and `roleforge/jobs/monitor_poll.py`; optional salary modeling remains deferred.
+- Backlog, architecture, README, deployment-runtime и manual-tasks синхронизированы. Тесты: 178 passed.
 
 Что уже сделано:
-- Схема 003_ai_metadata.sql; roleforge.enrichment (enrich_one, run_enrichment_for_high_scores, update_vacancy_ai_metadata); roleforge.prompts.enrichment (PROMPT_VERSION, build_user_prompt); зависимости openai, anthropic в requirements.txt.
+- `docs/specs/scheduler.md` фиксирует decision record: custom in-process loop вместо APScheduler / `schedule` / Postgres cron table.
+- `roleforge/scheduler.py` координирует `gmail_poll`, `feed_poll`, `alert`, `batch`, `digest`; `queue` остаётся on-demand.
+- Runtime docs теперь описывают `DIGEST_AT_UTC` и scheduler cadence vars.
 
 Что осталось следующим лучшим блоком:
-- EPIC-16 (Scheduler): TASK-068 research, TASK-069 implementation, TASK-070 docs.
-- Опционально: отдельный job entrypoint для enrichment (например `python -m roleforge.jobs.enrichment`), вызывающий run_enrichment_for_high_scores и log_job_finish с summary (включая ai_cost_usd).
+- `EPIC-17` (Application Lifecycle): начать с `TASK-071` state machine decision, затем `TASK-072` onward.
+- `EPIC-18` не закрывать до явного решения по `TASK-089`/`TASK-090`. Если продукт захочет salary-aware monitoring, вернуться к ним отдельным блоком.
 
 Что пользователь должен подготовить заранее, если применимо:
-- Для запуска enrichment: PRIMARY_AI_PROVIDER и OPENAI_API_KEY или ANTHROPIC_API_KEY в keyring/env. Применить миграцию 003: `psql "$DATABASE_URL" -f schema/003_ai_metadata.sql`.
+- Для `EPIC-18` специальных ручных действий не нужно. Если позже пойдём в `EPIC-17`, потребуется отдельное state-machine решение по `TASK-071`.
 
 Что сделать сначала:
-1. Обновить Linear: TASK-061, TASK-063, TASK-064, TASK-065, TASK-066 и EPIC-15 в Done.
-2. Взять блок EPIC-16 (Scheduler) или реализовать enrichment job entrypoint.
-3. Прогон pytest после изменений; обновить GitHub mirror по канону.
+1. Обновить Linear: `EPIC-16`, `TASK-068`, `TASK-069`, `TASK-070`, а также `TASK-084`, `TASK-085`, `TASK-086`, `TASK-087`, `TASK-088`, `TASK-091`, `TASK-092` в Done.
+2. Оставить `EPIC-18` открытым, пока не решены `TASK-089` и `TASK-090`.
+3. Следующим безопасным блоком начать `EPIC-17` с `TASK-071` decision / schema research.
+4. Прогнать pytest после изменений; обновить GitHub mirror по канону.
 
 Ограничения, которые нельзя ломать:
-- Gmail-only MVP; Postgres-first; Telegram digest + review queue; one primary AI provider; keyring-first secrets; AI enrichment только post-scoring.
+- Gmail-only MVP
+- Postgres-first
+- Telegram digest + review queue
+- one primary AI provider in MVP
+- keyring-first secrets under `service=roleforge`
 
 После завершения:
-- Обновить Linear first, затем GitHub mirror; close-out comments; сгенерировать новый next-session prompt.
+- Обновить Linear first, затем GitHub mirror
+- Оставить close-out comments
+- Сгенерировать новый next-session prompt

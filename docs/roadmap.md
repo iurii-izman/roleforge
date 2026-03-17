@@ -39,7 +39,7 @@
 - Optional: micro-batch delivery job (flush mid-band matches every N minutes)
 - AI enrichment: vacancy summarizer for high-score items, stored in `vacancies.ai_metadata`
 - Add JSON structured logging to stdout
-- Add in-process scheduler (APScheduler or equivalent) as optional cron replacement
+- Add in-process scheduler (stdlib loop) as optional cron replacement
 - See [research-v4-plus.md](research-v4-plus.md) §4.1 for full version research
 
 **Gating criteria for v4 delivery features:** scoring must produce meaningfully differentiated
@@ -63,12 +63,12 @@ score bands (high-score ≥ 0.75 vacancies must be qualitatively better matches 
 
 **Depends on:** v4 real scoring (monitor results need score differentiation to filter noise)
 
-- Monitor registry: `config/monitors.yaml` (id, type, params, poll_interval, enabled)
+- Monitor registry: `config/monitors.yaml` (id, type, params, poll_interval_minutes, enabled)
 - `MONITOR_INTAKE_ENABLED` global kill-switch
 - HH.ru API adapter: `roleforge/monitors/hh.py`, emits standard candidate shape
 - `monitor_poll` job: reads registry, runs enabled monitors, logs to `job_runs`
-- Structured salary field: `vacancies.salary_structured JSONB` (populated by HH.ru adapter)
-- Salary range filtering in hard_filters (profile config extension)
+- Optional structured salary modeling: add `vacancies.salary_structured JSONB` only if salary-aware filtering becomes worth the extra schema
+- Salary range filtering in hard_filters stays deferred until salary modeling is explicitly approved
 - ToS review and rate-limit policy documented before implementation
 - See [research-v4-plus.md](research-v4-plus.md) §4.3 for full version research
 

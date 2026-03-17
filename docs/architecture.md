@@ -45,6 +45,12 @@
   - Automatic daily backups with at least 7 days of retention (14 preferred); PITR enabled if available.
   - No replicas or heavy infra platforms in MVP; advanced HA/observability are explicitly deferred.
 
+## Scheduler (EPIC-16, TASK-068–070)
+
+- **Chosen approach:** a small in-process scheduler in `roleforge/scheduler.py` using the standard library. APScheduler, the `schedule` package, and a Postgres cron table were evaluated but are heavier than the MVP needs.
+- **Contract:** the scheduler coordinates approved job entrypoints; it does not replace Postgres or introduce a queue. Each scheduled job still owns its own `job_runs` logging.
+- **Default cadence:** Gmail polling every 15 minutes, feeds every 60 minutes, alert every 5 minutes, batch every 15 minutes, and digest daily at `DIGEST_AT_UTC` (default `09:00` UTC). Queue remains on-demand.
+- **Failure behavior:** one job failure must not stop the loop or block other jobs. Underlying jobs keep their own retry/fallback policies; scheduler state is in-memory only.
 
 ## v3.1 Feed intake (EPIC-11)
 
@@ -70,6 +76,16 @@ Rules for all AI use in the pipeline (enrichment, future inbox classification, e
 - **Failure behavior:** AI calls must not block the deterministic pipeline. On transient failure: retry with bounded backoff; then skip and continue. On permanent failure: skip and log. Delivery and scoring proceed without AI output when enrichment fails.
 - **Cost:** Every job that calls the AI must set `ai_cost_usd` in `job_runs.summary`. Monthly review uses the query in [Cost governance](specs/cost-governance.md). Per-run caps (e.g. max enrichments per run) limit cost exposure.
 - **Privacy and logging:** Do not send operator PII to the AI. Do not log full prompts or full model responses; log only counts, cost, and high-level metadata (model, prompt_version).
+
+## Market monitoring (v6, TASK-091)
+
+HH.ru is the first active market-monitoring source. The implementation keeps the same normalized vacancy pipeline and adds only a file-driven registry plus a sweep job.
+
+- **Source choice:** Use the official HH.ru public vacancy search API for personal monitoring. The official developer agreement allows application registration and is explicit that API data is for the developer's own hiring-related use, not commercial redistribution or third-party sharing.
+- **Registry and kill-switch:** `config/monitors.yaml` plus `MONITOR_INTAKE_ENABLED` keep the monitor path reversible without changing Gmail or feed intake.
+- **Adapter and source keys:** `roleforge.monitors.hh` maps HH.ru vacancy payloads to the shared candidate shape; source keys use `monitor:hh:{vacancy_id}` in `vacancy_observations.feed_source_key`.
+- **Operational policy:** Identify the app with a clear User-Agent, use conservative paging/backoff, and do not HTML-scrape job boards. The public docs expose `alternate_url` and structured `salary` fields; optional salary-aware filtering stays deferred until product value is explicit.
+- **Job logging:** `roleforge.jobs.monitor_poll` records a `job_runs` summary with per-monitor results so source health remains auditable.
 
 ## Explicitly Deferred
 
@@ -112,3 +128,5 @@ Rules for all AI use in the pipeline (enrichment, future inbox classification, e
 | 2026-03-17 | Source key convention extended to monitors: monitor:{type}:{ext_id} in vacancy_observations.feed_source_key | Accepted | No schema change needed; consistent with connector:{id}:{ext_id} convention; feed_source_key is already the generic non-Gmail source field |
 | 2026-03-18 | AI enrichment contract (TASK-062): provider/model shortlist, input/output, gating, timeout/retry/fallback, cost and prompt versioning | Accepted | docs/specs/ai-enrichment-contract.md; clear path to TASK-061, TASK-063–TASK-066; no runtime AI in this session |
 | 2026-03-18 | AI governance rules documented in architecture (TASK-067) | Accepted | New section "AI governance (v4+)" in docs/architecture.md; model pinning, prompt versioning, failure behavior, cost, privacy |
+| 2026-03-18 | Scheduler decision (TASK-068): custom in-process standard-library loop, daily digest at 09:00 UTC, queue remains on-demand | Accepted | docs/specs/scheduler.md; `roleforge/scheduler.py`; no APScheduler, no `schedule` dependency, no Postgres cron table |
+| 2026-03-18 | HH.ru market monitoring block (TASK-084–TASK-092): public API first, registry + adapter + monitor_poll, kill-switch, legal envelope documented | Accepted | docs/specs/v6-market-monitoring.md; `config/monitors.yaml`; `roleforge/monitor_registry.py`; `roleforge/monitors/hh.py`; `roleforge/jobs/monitor_poll.py`; optional salary modeling remains deferred |

@@ -1,0 +1,18 @@
+# Monitor registry (EPIC-18). HH.ru search sources for active market monitoring.
+# Global kill-switch: set MONITOR_INTAKE_ENABLED=false or omit to disable all monitor polling.
+# Each monitor can have its own poll_interval_minutes for future scheduler/external cron use.
+
+# monitors:
+#   - id: hh_python_remote
+#     name: HH.ru Python Remote
+#     type: hh_api
+#     enabled: true
+#     poll_interval_minutes: 60
+#     params:
+#       text: python backend
+#       area: 1
+#       schedule: remote
+#       per_page: 100
+#       date_from: 2026-03-01
+
+monitors: []
