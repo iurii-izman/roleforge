@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Update Linear issue states by task ID (e.g. set to In Progress or Done)."""
+"""Update Linear issue states by backlog ID (EPIC/TASK)."""
 
 from __future__ import annotations
 
@@ -44,18 +44,21 @@ def load_backlog(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
-def task_title(backlog: dict, task_id: str) -> str | None:
+def issue_title(backlog: dict, backlog_id: str) -> str | None:
+    for epic in backlog["epics"]:
+        if epic["id"] == backlog_id:
+            return f"{epic['id']} {epic['title']}"
     for epic in backlog["epics"]:
         for task in epic["tasks"]:
-            if task["id"] == task_id:
+            if task["id"] == backlog_id:
                 return f"{task['id']} {task['title']}"
     return None
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Update Linear issue state by task IDs")
+    parser = argparse.ArgumentParser(description="Update Linear issue state by backlog IDs")
     parser.add_argument("--backlog", type=Path, default=Path("docs/backlog/roleforge-backlog.json"))
-    parser.add_argument("--task-ids", required=True, help="Comma-separated task IDs, e.g. TASK-001,TASK-002")
+    parser.add_argument("--issue-ids", required=True, help="Comma-separated backlog IDs, e.g. EPIC-13,TASK-050,TASK-051")
     parser.add_argument("--state", required=True, help="Target state: Backlog, Ready, In Progress, Blocked, User Input, Done")
     parser.add_argument("--token-domain", default="linear")
     parser.add_argument("--token-key", default="api_key")
@@ -95,11 +98,11 @@ def main() -> int:
     issues_by_title = {n["title"]: n["id"] for n in issues_data["project"]["issues"]["nodes"]}
 
     state_id = state_by_name[args.state]
-    task_ids = [t.strip() for t in args.task_ids.split(",")]
-    for task_id in task_ids:
-        title = task_title(backlog, task_id)
+    issue_ids = [t.strip() for t in args.issue_ids.split(",")]
+    for backlog_id in issue_ids:
+        title = issue_title(backlog, backlog_id)
         if not title:
-            print(f"Task {task_id} not found in backlog")
+            print(f"Backlog ID {backlog_id} not found in backlog")
             continue
         if title not in issues_by_title:
             print(f"Issue {title!r} not found in Linear project")
