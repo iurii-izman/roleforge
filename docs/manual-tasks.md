@@ -1,83 +1,227 @@
-# Ручные задачи (post–EPIC-11)
+# Manual Tasks And Execution Blocks (v4+)
 
-Чеклист того, что ещё может понадобиться после завершения и синхронизации EPIC-11.
+Этот документ отделяет то, что можно уверенно делать на автопилоте, от продуктовых решений и ручных действий пользователя.
 
----
+## Current status
 
-## 1. Статус синхронизации
+- Исследование `v4+` зафиксировано в [research-v4-plus.md](/var/home/user/Projects/roleforge/docs/research-v4-plus.md).
+- Канонический backlog расширен до `EPIC-20` в [roleforge-backlog.json](/var/home/user/Projects/roleforge/docs/backlog/roleforge-backlog.json).
+- Следующий implementation-спринт уже подготовлен в [next-session.md](/var/home/user/Projects/roleforge/docs/prompts/next-session.md).
 
-На 2026-03-16:
+## Autopilot blocks
 
-- `TASK-044` и `TASK-045` реализованы в коде и покрыты тестами.
-- **TASK-046 и TASK-047 (EPIC-11 v3.1 Feed Expansion)** реализованы: feed registry (config/feeds.yaml), kill-switch (FEED_INTAKE_ENABLED), feed_poll job, schema 002 для feed_source_key в vacancy_observations. Тесты: test_feed_registry.py, test_feed_reader.py; dedup поддерживает feed_source_key.
-- После проверки кодом `TASK-046` и `TASK-047` можно закрывать в GitHub и Linear вместе с `EPIC-11`.
+### Block A: EPIC-13 Scoring Engine Enhancement
 
----
+Можно делать на автопилоте сразу.
 
-## 2. Следующий блок после EPIC-11
+- `TASK-050` real title keyword overlap
+- `TASK-051` real company preference scoring
+- `TASK-052` extend `profiles.config` with `keywords` and `skills`
+- `TASK-053` real keyword bonus
+- `TASK-054` calibration on real data
+- `TASK-055` update scoring spec
 
-- **EPIC-12 (v3.2):** TASK-048 и TASK-049 выполнены (контракт и кандидаты задокументированы).
-  - Контракт: тот же candidate → normalize → dedup → scoring; источник в `feed_source_key` с префиксом `connector:{id}:{external_id}`; без новых таблиц.
-  - Enable/disable: `CONNECTOR_INTAKE_ENABLED` + per-connector `enabled` в будущем реестре.
-  - Первые кандидаты: Greenhouse (приоритет), Lever; реализация — только после метрик MVP и решения продукта.
-  - Риски, ограничения и rollout path: в `docs/specs/v3-feeds-and-connectors.md` §6.
-- Дальше: реализация реестра и первого коннектора по готовности; или точечные v2 доработки (queue undo, digest trends).
+Зависимости:
+- нет внешних product-decisions
+- нужны реальные данные для калибровки
 
----
+### Block B: EPIC-20 Observability quick wins
 
-## 3. Откалибровать профили под свой поиск
+Можно делать параллельно или сразу после `EPIC-13`.
 
-Базовые `v2` профили уже засеяны:
+- `TASK-102` structured JSON logging
+- `TASK-103` consecutive-failure admin alerts
+- `TASK-105` monthly cost report doc/query
 
-- `default_mvp`
-- `primary_search`
-- `stretch_geo`
+Зависимости:
+- `TASK-103` требует рабочий `TELEGRAM_ADMIN_CHAT_ID`
 
-Их можно подстроить под реальные вакансии и гео.
+### Block C: EPIC-14 Delivery Intelligence
 
-**Вариант A — правка в БД (текущие данные сохраняются):**
+Частично на автопилоте после `EPIC-13`.
 
-1. Подключиться к Postgres (например `podman exec -it roleforge-pg psql -U roleforge -d roleforge` или DBeaver).
-2. Посмотреть текущий config:
-   ```sql
-   SELECT id, name, config FROM profiles WHERE name IN ('primary_search', 'stretch_geo');
-   ```
-3. Обновить `config` (JSONB): подправить `hard_filters.locations`, `hard_filters.exclude_titles`, `hard_filters.exclude_companies`, `config.min_score` под свой кейс.
-4. Пересчитать матчи и ранги:
-   ```bash
-   python scripts/run_scoring_once.py
-   ```
+- `TASK-058` add `alert` delivery type support
+- `TASK-057` implement `alert.py`
+- `TASK-059` micro-batch delivery
+- `TASK-060` Telegram interaction spec update
 
-**Вариант B — правка в коде (для всех будущих seed):**
+Зависимость:
+- сначала нужен product-decision по `TASK-056`
 
-1. Открыть `scripts/seed_profiles_v2.py`.
-2. В функциях `_build_profiles()` изменить списки `locations`, `exclude_titles`, `exclude_companies` и значения `min_score` для `primary_search` и/или `stretch_geo`.
-3. Выполнить:
-   ```bash
-   python scripts/seed_profiles_v2.py
-   python scripts/run_scoring_once.py
-   ```
+### Block D: EPIC-15 AI Enrichment
 
----
+Автопилот возможен после решения по контракту ИИ.
 
-## 4. Feeds (EPIC-11) — реализовано
+- `TASK-061` add `ai_metadata`
+- `TASK-063` enrichment module
+- `TASK-064` post-scoring enrichment step
+- `TASK-065` `ai_cost_usd` in job summaries
+- `TASK-066` prompt versioning
+- `TASK-067` AI governance docs
 
-- **Реестр:** `config/feeds.yaml` (id, name, url, type: rss|atom, enabled). Файловый; без новой таблицы.
-- **Kill-switch:** глобальный `FEED_INTAKE_ENABLED` (по умолчанию false); по фиду — `enabled: true/false` в YAML.
-- **Запуск:** `python -m roleforge.jobs.feed_poll`; перед первым прогоном применить `schema/002_feed_observations.sql`.
-- **EPIC-12:** контракт и первые кандидаты (Greenhouse, Lever) задокументированы; реализация — по готовности метрик и решению продукта.
+Зависимость:
+- сначала нужен contract по `TASK-062`
 
----
+### Block E: EPIC-16 Scheduler
 
-## 5. Регулярный ритуал (по желанию)
+Можно брать после стабилизации `EPIC-13` и `EPIC-14`.
 
-- Раз в неделю (или после накопления матчей) запускать:
-  ```bash
-  python scripts/report_profile_stats.py --days 7
-  ```
-  По выводу решать: менять ли пороги/фильтры профилей, добавлять ли новые.
+- `TASK-068` scheduler research
+- `TASK-069` scheduler implementation
+- `TASK-070` runtime docs
 
-- При изменении профилей или добавлении данных всегда после этого запускать:
-  ```bash
-  python scripts/run_scoring_once.py
-  ```
+### Block F: EPIC-17 Application Lifecycle
+
+Большой блок, запускать только после утверждения state machine.
+
+- `TASK-072` through `TASK-083`
+
+Зависимости:
+- `TASK-071` state machine and schema direction
+- для части задач нужен AI contract из `EPIC-15`
+
+### Block G: EPIC-18 Market Monitoring
+
+Стартует после `EPIC-13`, но лучше после стабилизации delivery path.
+
+- `TASK-084` HH.ru research
+- `TASK-085` monitor registry
+- `TASK-086` HH.ru adapter
+- `TASK-087` monitor poll
+- `TASK-088` kill-switch
+- `TASK-091` ToS/rate-limit docs
+- `TASK-092` market monitoring spec
+
+Опциональный хвост:
+- `TASK-089`
+- `TASK-090`
+
+### Block H: EPIC-19 Web UI
+
+Не начинать до появления стабильных v4/v5 flows.
+
+- `TASK-094` through `TASK-101`
+
+Зависимость:
+- сначала нужен `TASK-093` scope decision
+
+## User decision blocks
+
+Это не просто “руками сделать”, а именно решения, без которых следующие эпики будут либо шумными, либо архитектурно размазанными.
+
+### Decision 1: Delivery thresholds and mode
+
+Связанный backlog:
+- `TASK-056`
+
+Нужно решить:
+- нужен ли instant alert path в `v4`
+- какой `immediate_threshold`
+- нужен ли micro-batch path
+- какой `batch_threshold`
+- какой `batch_interval_minutes`
+- что остаётся ролью digest
+
+После решения:
+- можно делать `EPIC-14`
+
+### Decision 2: AI enrichment contract
+
+Связанный backlog:
+- `TASK-062`
+
+Нужно решить:
+- какой provider/model использовать
+- какие поля ИИ генерирует
+- на каких score bands enrichment включается
+- месячный budget / cost ceiling
+- fallback при ошибке ИИ
+
+После решения:
+- можно делать `EPIC-15`
+
+### Decision 3: Application lifecycle state machine
+
+Связанный backlog:
+- `TASK-071`
+
+Нужно решить:
+- состояния application
+- состояния employer reply / interview
+- terminal states
+- какие переходы идут руками через Telegram
+- где нужна автоматизация, а где только assistive UX
+
+После решения:
+- можно делать `EPIC-17`
+
+### Decision 4: Structured salary scope
+
+Связанный backlog:
+- `TASK-089`
+
+Нужно решить:
+- нужен ли `salary_structured` уже в `v6`
+- какие поля минимальны
+- salary входит только в filters или ещё и в scoring
+
+После решения:
+- можно делать `TASK-090`
+
+### Decision 5: Web UI scope
+
+Связанный backlog:
+- `TASK-093`
+
+Нужно решить:
+- что остаётся Telegram-first
+- что переезжает в web
+- что read-only, а что editable
+- нужен ли auth only for self-use или закладываем future multi-user constraints
+
+После решения:
+- можно делать `EPIC-19`
+
+## Manual checks and rituals
+
+### После любых scoring changes
+
+```bash
+cd /var/home/user/Projects/roleforge
+source /var/home/user/Projects/roleforge/.venv/bin/activate
+python /var/home/user/Projects/roleforge/scripts/run_scoring_once.py
+```
+
+Потом проверить распределение score SQL-запросами из `docs/prompts/next-session.md`.
+
+### После любых profile changes
+
+```bash
+cd /var/home/user/Projects/roleforge
+source /var/home/user/Projects/roleforge/.venv/bin/activate
+python /var/home/user/Projects/roleforge/scripts/seed_profiles_v2.py
+python /var/home/user/Projects/roleforge/scripts/run_scoring_once.py
+```
+
+### Периодический review ritual
+
+```bash
+cd /var/home/user/Projects/roleforge
+source /var/home/user/Projects/roleforge/.venv/bin/activate
+python /var/home/user/Projects/roleforge/scripts/report_profile_stats.py --days 7
+```
+
+## Recommended order
+
+1. `EPIC-13`
+2. `EPIC-20` quick wins
+3. `TASK-056` decision
+4. `EPIC-14`
+5. `TASK-062` decision
+6. `EPIC-15`
+7. `EPIC-16`
+8. `TASK-071` decision
+9. `EPIC-17`
+10. `EPIC-18`
+11. `TASK-093` decision
+12. `EPIC-19`

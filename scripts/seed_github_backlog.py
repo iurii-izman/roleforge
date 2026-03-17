@@ -70,6 +70,29 @@ def ensure_project(owner: str, repo: str, title: str, dry_run: bool) -> None:
         run(["gh", "project", "link", str(existing), "--owner", owner, "--repo", repo_name], dry_run=dry_run)
 
 
+def existing_issues_by_title(repo: str, dry_run: bool) -> dict[str, str]:
+    output = run(
+        [
+            "gh",
+            "issue",
+            "list",
+            "--repo",
+            repo,
+            "--state",
+            "all",
+            "--limit",
+            "1000",
+            "--json",
+            "title,url",
+        ],
+        dry_run=dry_run,
+    )
+    if dry_run or not output:
+        return {}
+    issues = json.loads(output)
+    return {issue["title"]: issue["url"] for issue in issues}
+
+
 def issue_body(item: dict, summary: str | None = None) -> str:
     lines: list[str] = []
     if summary:
@@ -158,9 +181,12 @@ def add_issue_to_project(owner: str, project_title: str, issue_url: str, dry_run
 def seed(repo: str, owner: str, project_title: str, backlog: dict, dry_run: bool) -> None:
     ensure_labels(backlog, repo, dry_run=dry_run)
     ensure_project(owner, repo, project_title, dry_run=dry_run)
+    existing = existing_issues_by_title(repo, dry_run=dry_run)
 
     for epic in backlog["epics"]:
         epic_title = f"{epic['id']} {epic['title']}"
+        if epic_title in existing:
+            continue
         epic_labels = sorted(set(epic["labels"]) | {"epic", epic["priority"].lower(), f"effort:{epic['effort'].lower()}", epic["ai_mode"].lower().replace(' ', '-')})
         epic_body = issue_body(
             {
@@ -181,15 +207,19 @@ def seed(repo: str, owner: str, project_title: str, backlog: dict, dry_run: bool
         epic_url = create_issue(repo, epic_title, epic_body, epic_labels, dry_run=dry_run)
         if epic_url:
             add_issue_to_project(owner, project_title, epic_url, dry_run=dry_run)
+            existing[epic_title] = epic_url
 
         for task in epic["tasks"]:
             if not task.get("github_mirror", True):
                 continue
             title = f"{task['id']} {task['title']}"
+            if title in existing:
+                continue
             body = issue_body(task, summary=f"Parent Epic: {epic['id']} {epic['title']}")
             issue_url = create_issue(repo, title, body, issue_labels(epic, task), dry_run=dry_run)
             if issue_url:
                 add_issue_to_project(owner, project_title, issue_url, dry_run=dry_run)
+                existing[title] = issue_url
 
 
 def parse_args() -> argparse.Namespace:
