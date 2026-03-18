@@ -87,6 +87,15 @@ HH.ru is the first active market-monitoring source. The implementation keeps the
 - **Operational policy:** Identify the app with a clear User-Agent, use conservative paging/backoff, and do not HTML-scrape job boards. The public docs expose `alternate_url` and structured `salary` fields; optional salary-aware filtering stays deferred until product value is explicit.
 - **Job logging:** `roleforge.jobs.monitor_poll` records a `job_runs` summary with per-monitor results so source health remains auditable.
 
+## v5 application lifecycle (EPIC-17, TASK-071)
+
+- **Lifecycle shape:** `applied` → `hr_pinged` → `interview_scheduled` → `offer` → `accepted` / `declined`, with `rejected` and `ghosted` as terminal exits.
+- **State authority:** State changes stay operator-confirmed. Telegram is the control surface; Gmail thread matching and later classifier work only assist with detection.
+- **Schema shape:** Additive tables in the same Postgres instance: `applications`, `employer_threads`, and `interview_events`.
+- **Migration file:** `schema/004_application_lifecycle.sql` (the v5 migration follows `003_ai_metadata.sql`).
+- **Deferred scope:** No separate application service, no calendar sync, and no AI-driven state transitions in this slice.
+- **Message classification:** `gmail_messages.classified_as` (migration 005) stores deterministic inbox classification; rules and replay semantics in [Inbox classifier](specs/inbox-classifier.md) (TASK-073); implementation in `roleforge.inbox_classifier` (TASK-075). [AI inbox classification contract](specs/ai-inbox-classification-contract.md) (TASK-074) defines when and how to call AI for ambiguous messages.
+
 ## Explicitly Deferred
 
 - IMAP
@@ -122,7 +131,7 @@ HH.ru is the first active market-monitoring source. The implementation keeps the
 | 2026-03-17 | Scoring dimensions are placeholders; EPIC-13 required before delivery intelligence | Accepted | title_match/company_match return 0.5-if-present; keyword_bonus always 0; all vacancies score ~0.52; threshold-triggered alerts are meaningless until real keyword matching is implemented; see docs/research-v4-plus.md §1.3 |
 | 2026-03-17 | v4 delivery mode: threshold-triggered alerts default-off per profile | Accepted | profiles.config extended with delivery_mode (alert_enabled, immediate_threshold, batch_enabled, batch_threshold, batch_interval_minutes); both flags default false to preserve digest-only behavior; see docs/research-v4-plus.md §4.1 |
 | 2026-03-17 | AI enrichment post-scoring only, never in scoring path | Accepted | AI may generate vacancy summary and inbox classification; scoring dimensions remain deterministic keyword rules; AI output stored in vacancies.ai_metadata JSONB; prompt version + model pinned; see docs/research-v4-plus.md §6.5 |
-| 2026-03-17 | v5 application lifecycle: new tables in same Postgres, no separate service | Accepted | applications, employer_threads, interview_events tables (schema/003_applications.sql); additive to existing schema; single Postgres, same backup, same audit trail; see docs/research-v4-plus.md §4.2 |
+| 2026-03-18 | v5 application lifecycle: minimal state machine and additive schema | Accepted | `applied` → `hr_pinged` → `interview_scheduled` → `offer` → `accepted` / `declined`, with `rejected` and `ghosted` as terminal exits; additive tables in `schema/004_application_lifecycle.sql`; see `docs/specs/v5-application-lifecycle.md` |
 | 2026-03-17 | v6 market monitoring: HH.ru API first, monitor registry in config/monitors.yaml | Accepted | Official public API (no auth), same candidate shape via monitor:hh:{id} source key; MONITOR_INTAKE_ENABLED kill-switch; no HTML scraping ever; see docs/research-v4-plus.md §4.3 |
 | 2026-03-17 | v7 web UI: FastAPI + Jinja2 + HTMX, Bearer token auth, no build system | Accepted | Single Python process; Telegram stays as primary delivery channel; web UI handles configuration, analytics, bulk queue, application workspace; see docs/research-v4-plus.md §4.4 |
 | 2026-03-17 | Source key convention extended to monitors: monitor:{type}:{ext_id} in vacancy_observations.feed_source_key | Accepted | No schema change needed; consistent with connector:{id}:{ext_id} convention; feed_source_key is already the generic non-Gmail source field |

@@ -13,7 +13,7 @@
 - `EPIC-15` (AI Enrichment) закрыта: TASK-061 (миграция ai_metadata), TASK-063 (enrichment.py), TASK-064 (run_enrichment_for_high_scores), TASK-065 (ai_cost_usd в summary), TASK-066 (prompts/enrichment.py).
 - `EPIC-16` (Scheduler) закрыт: TASK-068 (research), TASK-069 (scheduler), TASK-070 (docs).
 - `EPIC-18` (Market Monitoring) core path закрыт: TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092; optional salary tail TASK-089/TASK-090 остаётся deferred.
-- Следующий блок: `EPIC-17` decision block (начинать только после TASK-071 state machine).
+- `EPIC-17` decision block закрыт: TASK-071 state machine + schema plan зафиксированы; TASK-072 (classified_as), TASK-073 (inbox classifier spec), TASK-074 (AI inbox classification contract), TASK-075 (inbox_classifier.py), TASK-083 (lifecycle spec) закрыты; следующий блок — TASK-076 (inbox_classify job).
 
 ## Autopilot blocks
 
@@ -77,12 +77,16 @@
 
 ### Block F: EPIC-17 Application Lifecycle
 
-Большой блок, запускать только после утверждения state machine.
+Decision made. Implementation slice in progress.
 
-- `TASK-072` through `TASK-083`
+- ~~`TASK-072`~~ add `classified_as` to `gmail_messages` (schema/005_gmail_classified.sql, docs)
+- ~~`TASK-073`~~ design deterministic inbox classifier (docs/specs/inbox-classifier.md)
+- ~~`TASK-074`~~ define AI classification contract for ambiguous emails (docs/specs/ai-inbox-classification-contract.md)
+- ~~`TASK-075`~~ implement roleforge/inbox_classifier.py (deterministic rules)
+- `TASK-076` (inbox_classify job) through `TASK-082`
 
 Зависимости:
-- `TASK-071` state machine and schema direction
+- `TASK-071` state machine and schema direction is now fixed
 - для части задач нужен AI contract из `EPIC-15`
 
 ### Block G: EPIC-18 Market Monitoring
@@ -147,14 +151,18 @@ Core path closed. HH.ru monitoring now exists as a safe, reversible sweep over t
 - `TASK-071`
 
 Нужно решить:
-- состояния application
-- состояния employer reply / interview
+- состояния application, employer reply / interview
 - terminal states
 - какие переходы идут руками через Telegram
 - где нужна автоматизация, а где только assistive UX
 
 После решения:
 - можно делать `EPIC-17`
+
+Статус:
+- решено и задокументировано в [docs/specs/v5-application-lifecycle.md](specs/v5-application-lifecycle.md)
+- additive schema plan: `schema/004_application_lifecycle.sql`
+- AI остаётся только post-scoring / assistive, без state gating
 
 ### Decision 4: Structured salary scope
 

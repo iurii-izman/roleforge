@@ -169,7 +169,7 @@
       "title": "Foundation and Backlog Control",
       "phase": "mvp",
       "priority": "P0",
-      "status": "Backlog",
+      "status": "In Progress",
       "ai_mode": "Human-Verify",
       "effort": "M",
       "labels": [
@@ -313,7 +313,7 @@
       "title": "Access, Secrets, and Bootstrap",
       "phase": "mvp",
       "priority": "P0",
-      "status": "Backlog",
+      "status": "In Progress",
       "ai_mode": "Human-Verify",
       "effort": "M",
       "labels": [
@@ -389,7 +389,7 @@
           "id": "TASK-007",
           "title": "Define roleforge keyring namespace contract",
           "type": "implementation",
-          "status": "Done",
+          "status": "Backlog",
           "priority": "P0",
           "ai_mode": "AI-Ready",
           "effort": "L",
@@ -525,7 +525,7 @@
       "title": "Gmail Intake",
       "phase": "mvp",
       "priority": "P0",
-      "status": "Backlog",
+      "status": "In Progress",
       "ai_mode": "Human-Verify",
       "effort": "H",
       "labels": [
@@ -2840,7 +2840,7 @@
       "title": "v5 Application Lifecycle",
       "phase": "v5",
       "priority": "P1",
-      "status": "Backlog",
+      "status": "In Progress",
       "ai_mode": "Human-Verify",
       "effort": "H",
       "labels": [
@@ -2855,9 +2855,9 @@
       "tasks": [
         {
           "id": "TASK-071",
-          "title": "Define application schema and write schema/003_applications.sql",
+          "title": "Define application schema and write schema/004_application_lifecycle.sql",
           "type": "research",
-          "status": "Backlog",
+          "status": "Done",
           "priority": "P1",
           "ai_mode": "Human-Verify",
           "effort": "H",
@@ -2874,7 +2874,7 @@
           ],
           "outputs": [
             "Approved lifecycle design",
-            "schema/003_applications.sql plan"
+            "schema/004_application_lifecycle.sql plan"
           ],
           "acceptance": [
             "Application states are explicit",
@@ -2894,7 +2894,7 @@
           "id": "TASK-072",
           "title": "Add classified_as column to gmail_messages",
           "type": "implementation",
-          "status": "Backlog",
+          "status": "Done",
           "priority": "P1",
           "ai_mode": "AI-Ready",
           "effort": "M",
@@ -2931,7 +2931,7 @@
           "id": "TASK-073",
           "title": "Design inbox classifier algorithm",
           "type": "research",
-          "status": "Ready",
+          "status": "Done",
           "priority": "P1",
           "ai_mode": "AI-Ready",
           "effort": "M",
@@ -2965,7 +2965,7 @@
           "id": "TASK-074",
           "title": "Define AI classification contract for ambiguous emails",
           "type": "research",
-          "status": "Backlog",
+          "status": "Done",
           "priority": "P1",
           "ai_mode": "Human-Verify",
           "effort": "M",
@@ -3000,7 +3000,7 @@
           "id": "TASK-075",
           "title": "Implement roleforge/inbox_classifier.py",
           "type": "implementation",
-          "status": "Backlog",
+          "status": "Done",
           "priority": "P1",
           "ai_mode": "AI-Ready",
           "effort": "H",
@@ -3312,7 +3312,7 @@
           "id": "TASK-083",
           "title": "Document application lifecycle spec in docs/specs/v5-application-lifecycle.md",
           "type": "implementation",
-          "status": "Backlog",
+          "status": "Done",
           "priority": "P1",
           "ai_mode": "AI-Ready",
           "effort": "L",

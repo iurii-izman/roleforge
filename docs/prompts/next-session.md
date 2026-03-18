@@ -1,57 +1,74 @@
-Работаем в репозитории RoleForge.
+# RoleForge Next Session Prompt
 
-Сначала прочитай:
+## Read First
+
 - docs/prompts/cursor-autopilot-roleforge.md
 - AGENTS.md
 - README.md
 - docs/architecture.md
+- docs/product-brief.md
 - docs/roadmap.md
-- docs/research-v4-plus.md
 - docs/backlog/roleforge-backlog.json
+- docs/backlog/README.md
+- docs/bootstrap-access.md
+- docs/specs/v5-application-lifecycle.md
+- docs/specs/inbox-classifier.md
+- docs/specs/ai-inbox-classification-contract.md
+- schema/004_application_lifecycle.sql
+- schema/005_gmail_classified.sql
 - docs/manual-tasks.md
-- docs/specs/scheduler.md
-- docs/specs/deployment-runtime.md
-- docs/specs/job-runs-logging.md
-- docs/specs/v6-market-monitoring.md
+- roleforge/inbox_classifier.py (and tests/test_inbox_classifier.py)
+- any files changed in the previous session that are directly relevant
 
-Текущее состояние после прошлой сессии:
-- EPIC-13, EPIC-14, EPIC-15, EPIC-16 и EPIC-20 закрыты.
-- По EPIC-18 закрыты TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092. EPIC-18 остаётся открытым только из-за deferred salary tail TASK-089/TASK-090.
-- Scheduler реализован в `roleforge/scheduler.py` как in-process stdlib loop; `python -m roleforge.scheduler` — опциональный coordinated entrypoint.
-- HH.ru market monitoring now exists via `config/monitors.yaml`, `roleforge/monitor_registry.py`, `roleforge/monitors/hh.py`, and `roleforge/jobs/monitor_poll.py`.
-- Backlog, architecture, README, deployment-runtime и manual-tasks синхронизированы. Тесты: 178 passed.
+## Current State
 
-Следующий рабочий блок:
-- `EPIC-17` (Application Lifecycle), начиная с `TASK-071`.
-- Сначала нужно определить state machine и минимальную data model для applications / employer threads / interview events.
+- EPIC-17 remains In Progress in Linear and GitHub.
+- TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, and TASK-083 are Done (Linear and GitHub updated).
+- v5 lifecycle spec and schema 004/005 in place; inbox classifier spec (TASK-073), AI inbox classification contract (TASK-074), and `roleforge.inbox_classifier` (TASK-075) implemented.
+- docs/architecture.md, README.md, schema/README.md, and docs/manual-tasks.md are updated.
+- `python -m pytest` passed with 186 tests.
 
-Что нужно сделать:
-1. Прочитать research и текущие runtime constraints.
-2. Реализовать `TASK-071`: определить application lifecycle state machine и подготовить схему для `schema/004_application_lifecycle.sql` или следующей согласованной миграции.
-3. Если state machine и schema становятся достаточно ясными, подготовить groundwork для `TASK-072` (classification marker в `gmail_messages`), но не уходить глубоко в classifier implementation.
-4. Обновить docs/specs для v5 lifecycle и задокументировать decisions в `docs/architecture.md`.
-5. Обновить Linear first, затем GitHub mirror.
+## Done In This Session
 
-Что пользователь должен подготовить заранее, если применимо:
-- Для `TASK-071` можно идти без user input, если получится выбрать минимальную single-user state machine.
-- Если по ходу работы всплывёт несколько равноценных вариантов application states, выбрать самый простой, Postgres-first, Telegram-compatible вариант и зафиксировать его в docs.
+- **Linear/GitHub sync:** Marked TASK-072 and TASK-073 Done in Linear; closed GitHub issues #76 and #77 with close-out comments.
+- **TASK-074:** Wrote docs/specs/ai-inbox-classification-contract.md: when to call AI (only when `classified_as` NULL, cap per run), input (subject, snippet, from_domain), output (vacancy_alert | employer_reply | other), merge rule, timeout/retry/fallback, cost in job summary.
+- **TASK-075:** Implemented `roleforge/inbox_classifier.py`: deterministic rules (thread linked → employer_reply; intake label + single-message thread → vacancy_alert; subject/from heuristics; else ambiguous). Added `tests/test_inbox_classifier.py` (8 tests).
+- **TASK-083:** Wrote docs/specs/v5-application-lifecycle.md and aligned README / architecture / schema docs.
+- **Linear/GitHub:** Marked TASK-074, TASK-075, and TASK-083 Done in Linear; closed GitHub issues #78, #79, and #87 with close-out comments.
 
-Что сделать сначала:
-1. Перевести `EPIC-17` и `TASK-071` в `In Progress` в Linear.
-2. Изучить `docs/research-v4-plus.md` по v5 lifecycle, затем текущее schema/runtime состояние.
-3. Подготовить минимальную lifecycle spec и migration plan.
-4. После изменений прогнать pytest и синхронизировать трекеры.
+## Next Best Block
 
-Ограничения, которые нельзя ломать:
+- **TASK-076:** Implement `roleforge/jobs/inbox_classify.py` — run the inbox classifier on stored unclassified messages and set `gmail_messages.classified_as`. Use `roleforge.inbox_classifier.classify_message`; only update rows where `classified_as IS NULL`; pass intake label IDs from config/env. Log job_runs; optional: ai_cost_usd when AI fallback is added later.
+- Then TASK-077 (employer thread matching), TASK-078 (state transitions via Telegram), etc.
+
+## User Prep
+
+- none.
+
+## First Actions
+
+1. Continue with TASK-076: add `roleforge/jobs/inbox_classify.py` that selects unclassified messages from `gmail_messages`, calls `inbox_classifier.classify_message` for each (with conn and intake_label_ids), and updates `classified_as` where result is not None and current value is NULL.
+2. Resolve intake label IDs (e.g. from Gmail reader config or env); document in job or deployment contract.
+3. Run pytest after code changes; update Linear/GitHub when TASK-076 is done.
+
+## Constraints
+
 - Gmail-only MVP
 - Postgres-first
 - Telegram digest + review queue
 - one primary AI provider in MVP
-- keyring-first secrets under `service=roleforge`
-- Не закрывать `EPIC-18`, пока не сделаны `TASK-089` и `TASK-090`
-- Не уходить в full classifier / interview automation до утверждения lifecycle state machine
+- keyring-first secrets under service=roleforge
+- AI only post-scoring
+- Do not close EPIC-18 until TASK-089 and TASK-090 are done
+- Do not move into full classifier or interview automation before the lifecycle state machine is approved
 
-После завершения:
-- Обновить Linear first, затем GitHub mirror
-- Оставить close-out comments
-- Сгенерировать новый next-session prompt
+## If Blocked
+
+- No user input needed for this block. If drift appears, reconcile Linear/GitHub and continue.
+
+## On Completion
+
+- Update Linear first.
+- Update GitHub mirror second.
+- Leave close-out comments.
+- Generate a new next-session prompt from the actual outcome.
