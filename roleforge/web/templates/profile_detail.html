@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% if not_found %}
+    <div class="card">
+      <h2 class="h2">Profile not found</h2>
+      <div class="muted">Unknown profile id.</div>
+    </div>
+  {% else %}
+    <div class="card">
+      <h2 class="h2">Profile: {{ profile.name }}</h2>
+      <div class="muted">ID: <code>{{ profile.id }}</code></div>
+      {% if success %}
+        <div class="msg-ok">Saved.</div>
+      {% endif %}
+      {% if error %}
+        <div class="msg-err">Error: {{ error }}</div>
+      {% endif %}
+    </div>
+
+    <div class="card mt14">
+      <form method="post" action="/profiles/{{ profile.id }}">
+        <label>
+          <div class="muted mb8">Edit <code>profiles.config</code> (JSON). Only allowlisted keys and bounded sizes are accepted.</div>
+          <textarea name="config_json" rows="26" class="textarea">{{ config_json }}</textarea>
+        </label>
+        <div class="mt14">
+          <button class="btn" type="submit">Save</button>
+          <a class="muted" href="/profiles">Back</a>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}
+

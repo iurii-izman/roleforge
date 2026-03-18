@@ -1,0 +1,23 @@
+<table class="table">
+  <tr><th align="left">id</th><th align="left">name</th><th align="left">enabled</th></tr>
+  {% if feeds|length == 0 %}
+    <tr><td colspan="3" class="muted">No feeds configured in config/feeds.yaml</td></tr>
+  {% endif %}
+  {% for f in feeds %}
+    <tr>
+      <td><code>{{ f.id }}</code></td>
+      <td>{{ f.name }}</td>
+      <td>
+        <button
+          hx-post="/sources/feeds/{{ f.id }}/toggle?enabled={{ 'false' if f.enabled else 'true' }}"
+          hx-target="#feeds-table"
+          hx-swap="innerHTML"
+          class="btn"
+        >
+          {{ 'enabled' if f.enabled else 'disabled' }}
+        </button>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+

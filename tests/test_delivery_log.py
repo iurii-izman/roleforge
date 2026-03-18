@@ -59,6 +59,16 @@ class TestLogTelegramDelivery(unittest.TestCase):
         log_telegram_delivery(conn, "batch", {"profile_match_id": "pm1", "profile_id": "p1"})
         self.assertIn("batch", cur.execute.call_args[0][1])
 
+    def test_application_update_accepted(self) -> None:
+        """TASK-080: application lifecycle update notification."""
+        conn = MagicMock()
+        cur = MagicMock()
+        cur.fetchone.return_value = ("uuid-app",)
+        conn.cursor.return_value.__enter__ = lambda self: cur
+        conn.cursor.return_value.__exit__ = lambda *a: None
+        log_telegram_delivery(conn, "application_update", {"application_id": "a1", "kind": "thread_linked"})
+        self.assertIn("application_update", cur.execute.call_args[0][1])
+
     def test_invalid_delivery_type_raises(self) -> None:
         conn = MagicMock()
         with self.assertRaises(ValueError):

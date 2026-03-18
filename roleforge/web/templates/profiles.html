@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="card">
+    <h2 class="h2">Profiles</h2>
+    <div class="muted">Inspect and edit <code>profiles.config</code> with guardrails.</div>
+  </div>
+
+  <div class="card mt14">
+    <table class="table">
+      <tr><th align="left">Name</th><th align="left">ID</th><th align="left">Open</th></tr>
+      {% if profiles|length == 0 %}
+        <tr><td colspan="3" class="muted">No profiles found.</td></tr>
+      {% endif %}
+      {% for p in profiles %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td class="muted"><code>{{ p.id }}</code></td>
+          <td><a href="/profiles/{{ p.id }}">view/edit</a></td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+{% endblock %}
+

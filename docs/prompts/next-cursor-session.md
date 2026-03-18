@@ -22,34 +22,47 @@
 
 ## Current State
 
-- EPIC-17 remains In Progress in Linear and GitHub.
-- TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-076, TASK-077, TASK-078, and TASK-083 are Done in the repo.
+- EPIC-17 is Done in Linear and GitHub (repo-confirmed).
+- TASK-071 through TASK-083 are Done in the repo.
 - EPIC-18 is resolved by product decision: keep `salary_raw` only; no `salary_structured` in the current roadmap.
 - TASK-093 is Done as a scope decision in `docs/specs/v7-web-ui.md`.
 - v5 lifecycle spec and schema 004/005 in place; inbox classifier + job; employer thread matching; application state transitions via `roleforge.application_lifecycle` (apply_application_transition, is_allowed_transition).
-- docs/architecture.md, README.md, schema/README.md, docs/manual-tasks.md, and docs/specs/v5-application-lifecycle.md updated.
-- `python -m pytest` passed with 217 tests.
+- Interview event extraction exists as a deterministic job: `python -m roleforge.jobs.interview_event_extract` (writes to `interview_events`).
+- Application update notifications exist as an optional job: `python -m roleforge.jobs.application_notify` (disabled by default).
+- Interview AI enrichment exists as an optional job: `python -m roleforge.jobs.interview_event_ai_enrich` (disabled by default).
+- EPIC-19 web foundation exists: `roleforge/web/` (FastAPI+Jinja2+HTMX) with Bearer auth, and pages `/analytics`, `/system-health`, `/sources`.
+- Web queue browser exists: `/queue-browser` (bulk actions via existing `queue.apply_review_action`).
+- Web profile editor exists: `/profiles` + `/profiles/{id}` with guardrails and audit via `job_runs` (job_type `web_profile_edit`).
+- `python -m pytest tests/ -q` passed with 241 tests.
 
 ## Done In This Session
 
-- **TASK-078:** Implemented application state transitions for Telegram actions. Added `roleforge/application_lifecycle.py`: APPLICATION_STATUSES, TERMINAL_STATUSES, is_allowed_transition (validates from→to per v5 spec), get_current_status, apply_application_transition (updates applications.status and updated_at; rejects invalid/missing). Added tests in tests/test_application_lifecycle.py (16 tests). Documented Telegram contract in v5 spec and README: handlers call apply_application_transition(conn, application_id, status) with callback data.
-- **EPIC-18 / TASK-089 / TASK-090:** Closed by explicit product decision: keep `salary_raw` only, do not add `salary_structured` or salary-aware scoring in the current roadmap.
-- **TASK-093:** Web UI scope fixed in `docs/specs/v7-web-ui.md`.
+- **TASK-096 / TASK-099 / TASK-101:** web-first operator console value:
+  - `/analytics`: query-backed analytics (score bands, per-profile counts, sources, funnel, recent runs)
+  - `/system-health`: query-backed job_runs panel (last 5 per job type)
+  - `/sources`: feeds/monitors registry view + HTMX enable/disable toggles (edits YAML)
+  - tests added; Linear updated first; GitHub mirror issues closed.
+- **TASK-097:** queue browser:
+  - `/queue-browser`: table view over `profile_matches` + bulk actions via existing `roleforge.queue.apply_review_action` (auditable through `review_actions`)
+- **TASK-098:** profile editor:
+  - `/profiles`: list
+  - `/profiles/{id}`: view/edit `profiles.config` JSON with allowlist validation; audit via `job_runs` entry `web_profile_edit`
 
 ## Next Best Block
 
-- **TASK-079:** Implement interview event extraction from employer emails.
-- Then TASK-080 (application update notifications to Telegram).
+- **EPIC-19 next (later wave):**
+  - `TASK-100` application workspace timeline view (browse applications/employer_threads/interview_events)
+  - EPIC-19 remains In Progress until application workspace is delivered (do not close yet)
 
 ## User Prep
 
-- none for TASK-079 by default. If extraction requires AI, follow ai-inbox-classification-contract and cost governance.
+- none.
 
 ## First Actions
 
-1. Start TASK-079: extract interview events (dates, links, details) from employer threads into interview_events; align with docs/specs/v5-application-lifecycle.md and employer_threads data.
-2. Keep the first pass deterministic where possible; AI remains a bounded fallback.
-3. Run pytest after code changes; update Linear/GitHub when the block is done.
+1. Read `docs/specs/v7-web-ui.md` and keep constraints strict: single-user, Bearer token auth, FastAPI + Jinja2 + HTMX, no SPA, Telegram remains primary.
+2. Implement `TASK-100` as read-only timeline views first; keep it small and auditable (no new state machine logic).
+3. Run `python -m pytest tests/ -q`; update Linear first, GitHub mirror second; regenerate next prompts.
 
 ## Constraints
 

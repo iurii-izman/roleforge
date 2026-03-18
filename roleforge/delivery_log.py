@@ -19,15 +19,16 @@ def log_telegram_delivery(
     """
     Insert one row into telegram_deliveries. Call after sending a digest or queue card.
 
-    delivery_type: 'digest' | 'queue_card' | 'admin_alert' | 'alert' | 'batch'
+    delivery_type: 'digest' | 'queue_card' | 'admin_alert' | 'alert' | 'batch' | 'application_update'
     payload: optional JSON-serializable dict (e.g. profile_id, message_preview, recipient).
     Returns the inserted row id (UUID).
     'alert' = threshold-triggered vacancy alert (TASK-058); 'admin_alert' = consecutive-failure admin alert.
     'batch' = micro-batch delivery (TASK-059): mid-band matches per profile.
     """
-    if delivery_type not in ("digest", "queue_card", "admin_alert", "alert", "batch"):
+    if delivery_type not in ("digest", "queue_card", "admin_alert", "alert", "batch", "application_update"):
         raise ValueError(
-            f"delivery_type must be 'digest', 'queue_card', 'admin_alert', 'alert', or 'batch', got {delivery_type!r}"
+            "delivery_type must be 'digest', 'queue_card', 'admin_alert', 'alert', 'batch', or 'application_update', "
+            f"got {delivery_type!r}"
         )
     with conn.cursor() as cur:
         cur.execute(

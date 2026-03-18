@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="card">
+    <h2 class="h2">Queue browser</h2>
+    <div class="muted">Read-only table + bulk actions mirroring Telegram semantics (writes to <code>review_actions</code> and updates <code>profile_matches.state</code>).</div>
+  </div>
+
+  <div class="card mt14">
+    <form method="get" action="/queue-browser">
+      <label>Profile:
+        <select name="profile_id">
+          <option value="">(all)</option>
+          {% for p in profiles %}
+            <option value="{{ p.id }}" {% if p.id == selected_profile_id %}selected{% endif %}>{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="ml10">State:
+        <select name="state">
+          <option value="">(any)</option>
+          <option value="new" {% if selected_state == 'new' %}selected{% endif %}>new</option>
+          <option value="shortlisted" {% if selected_state == 'shortlisted' %}selected{% endif %}>shortlisted</option>
+          <option value="review_later" {% if selected_state == 'review_later' %}selected{% endif %}>review_later</option>
+        </select>
+      </label>
+      <button class="btn" type="submit">Filter</button>
+    </form>
+  </div>
+
+  <div class="card mt14">
+    <form method="post" action="/queue-browser/bulk-action">
+      <input type="hidden" name="profile_id" value="{{ selected_profile_id }}" />
+      <input type="hidden" name="state" value="{{ selected_state }}" />
+      <div class="row">
+        <label>Action:
+          <select name="action" required>
+            <option value="">(select)</option>
+            <option value="shortlist">shortlist</option>
+            <option value="review_later">review_later</option>
+            <option value="ignore">ignore</option>
+            <option value="applied">applied</option>
+            <option value="open">open</option>
+            <option value="next">next</option>
+          </select>
+        </label>
+        <button class="btn" type="submit">Apply to selected</button>
+        <div class="muted">Selected items will be updated idempotently via existing DB constraints.</div>
+      </div>
+
+      <table class="table">
+        <tr>
+          <th align="left"></th>
+          <th align="left">Profile</th>
+          <th align="left">Title</th>
+          <th align="left">Company</th>
+          <th align="left">Score</th>
+          <th align="left">State</th>
+          <th align="left">Link</th>
+        </tr>
+        {% if items|length == 0 %}
+          <tr><td colspan="7" class="muted">No items match the filter.</td></tr>
+        {% endif %}
+        {% for it in items %}
+          <tr>
+            <td>
+              <label>
+                <input type="checkbox" name="profile_match_id" value="{{ it.profile_match_id }}" />
+                <span class="muted">select</span>
+              </label>
+            </td>
+            <td>{{ it.profile_name }}</td>
+            <td>{{ it.title }}</td>
+            <td>{{ it.company }}</td>
+            <td>{{ "%.2f"|format(it.score) if it.score is not none else "—" }}</td>
+            <td>{{ it.state }}</td>
+            <td>
+              {% if it.url %}
+                <a href="{{ it.url }}" target="_blank">open</a>
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    </form>
+  </div>
+{% endblock %}
+

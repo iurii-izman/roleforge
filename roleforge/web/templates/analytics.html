@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="grid">
+    <div class="card">
+      <h2 class="h2">Score distribution</h2>
+      <table class="table">
+        <tr><th align="left">Band</th><th align="right">Count</th></tr>
+        {% for row in score_bands %}
+          <tr><td>{{ row.band }}</td><td align="right">{{ row.count }}</td></tr>
+        {% endfor %}
+      </table>
+      <div class="muted mb8">Bands: high ≥ 0.75, medium ≥ 0.50, low &lt; 0.50.</div>
+    </div>
+
+    <div class="card">
+      <h2 class="h2">Source observations (30d)</h2>
+      <table class="table">
+        <tr><th align="left">Source</th><th align="right">Observations</th></tr>
+        {% for row in sources %}
+          <tr><td>{{ row.source_kind }}</td><td align="right">{{ row.observations }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+
+  <div class="card mt14">
+    <h2 class="h2">Match counts by profile (14d)</h2>
+    <table class="table">
+      <tr>
+        <th align="left">Profile</th>
+        <th align="right">Total</th>
+        <th align="right">New</th>
+        <th align="right">Shortlisted</th>
+        <th align="right">Later</th>
+        <th align="right">Ignored</th>
+        <th align="right">Applied</th>
+      </tr>
+      {% for row in per_profile %}
+        <tr>
+          <td>{{ row.profile_name }}</td>
+          <td align="right">{{ row.matches_total }}</td>
+          <td align="right">{{ row.matches_new }}</td>
+          <td align="right">{{ row.matches_shortlisted }}</td>
+          <td align="right">{{ row.matches_review_later }}</td>
+          <td align="right">{{ row.matches_ignored }}</td>
+          <td align="right">{{ row.matches_applied }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div class="grid mt14">
+    <div class="card">
+      <h2 class="h2">Application funnel (90d)</h2>
+      <table class="table">
+        {% for k, v in funnel.items() %}
+          <tr><td>{{ k }}</td><td align="right">{{ v }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="card">
+      <h2 class="h2">Recent job runs</h2>
+      <table class="table">
+        <tr><th align="left">Job</th><th align="left">Status</th><th align="left">Started</th></tr>
+        {% for r in recent_runs %}
+          <tr>
+            <td>{{ r.job_type }}</td>
+            <td>{{ r.status }}</td>
+            <td class="muted">{{ r.started_at }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+{% endblock %}
+

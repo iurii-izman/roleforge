@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page_title or "RoleForge" }}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #0b0f17; color: #e5e7eb; }
+      a { color: #93c5fd; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      header { display: flex; align-items: center; gap: 16px; padding: 14px 18px; border-bottom: 1px solid #1f2937; position: sticky; top: 0; background: #0b0f17; }
+      header .brand { font-weight: 650; letter-spacing: 0.3px; }
+      nav a { margin-right: 12px; padding: 6px 10px; border-radius: 8px; }
+      nav a.active { background: #111827; }
+      main { padding: 18px; max-width: 1100px; margin: 0 auto; }
+      .card { background: #0f172a; border: 1px solid #1f2937; border-radius: 12px; padding: 14px; }
+      .muted { color: #9ca3af; }
+      .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+      @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+      code { background: #111827; padding: 2px 6px; border-radius: 8px; }
+      .mt14 { margin-top: 14px; }
+      .mb8 { margin-bottom: 8px; }
+      .h2 { margin: 0 0 8px 0; font-size: 20px; }
+      .h3 { margin: 0 0 8px 0; font-size: 16px; }
+      .table { width: 100%; border-collapse: collapse; }
+      .btn { padding: 6px 10px; border-radius: 10px; border: 1px solid #1f2937; background: #111827; color: #e5e7eb; cursor: pointer; }
+      .btn:hover { background: #0b1220; }
+      .ml10 { margin-left: 10px; }
+      .row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+      .msg-ok { margin-top: 10px; color: #9ca3af; }
+      .msg-err { margin-top: 10px; color: #fca5a5; }
+      .textarea { width: 100%; background: #0b0f17; color: #e5e7eb; border: 1px solid #1f2937; border-radius: 12px; padding: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand"><a href="/">RoleForge</a></div>
+      <nav>
+        <a href="/analytics" class="{% if page_title == 'Analytics' %}active{% endif %}">Analytics</a>
+        <a href="/system-health" class="{% if page_title == 'System health' %}active{% endif %}">System health</a>
+        <a href="/sources" class="{% if page_title == 'Sources' %}active{% endif %}">Sources</a>
+        <a href="/queue-browser" class="{% if page_title == 'Queue browser' %}active{% endif %}">Queue</a>
+        <a href="/profiles" class="{% if page_title == 'Profiles' %}active{% endif %}">Profiles</a>
+      </nav>
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
+

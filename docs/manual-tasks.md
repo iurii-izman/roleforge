@@ -13,8 +13,9 @@
 - `EPIC-15` (AI Enrichment) закрыта: TASK-061 (миграция ai_metadata), TASK-063 (enrichment.py), TASK-064 (run_enrichment_for_high_scores), TASK-065 (ai_cost_usd в summary), TASK-066 (prompts/enrichment.py).
 - `EPIC-16` (Scheduler) закрыт: TASK-068 (research), TASK-069 (scheduler), TASK-070 (docs).
 - `EPIC-18` (Market Monitoring) закрыт: core path TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092 реализованы; salary tail TASK-089/TASK-090 закрыт product-decision'ом — остаёмся на `salary_raw`, без `salary_structured` в текущем roadmap.
-- `EPIC-17` decision block: TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-076, TASK-077, TASK-078 (application state transitions via Telegram: `roleforge.application_lifecycle`), TASK-083 закрыты; следующий блок — TASK-079 (interview event extraction).
-- `TASK-093` закрыт: web UI scope зафиксирован как single-user operator console; следующий реальный блок по `EPIC-19` начинается с `TASK-094`, когда дойдём до web wave.
+- `EPIC-17` закрыт: TASK-071..083 (включая TASK-079..082) реализованы и покрыты тестами; есть deterministic extraction + optional notify + optional AI enrichment для interview events.
+- `TASK-093` закрыт: web UI scope зафиксирован как single-user operator console.
+- `EPIC-19` foundation slice закрыт: TASK-094, TASK-095, TASK-096, TASK-097, TASK-098, TASK-099, TASK-101 реализованы; следующий блок — `TASK-100` application workspace timeline view.
 
 ## Autopilot blocks
 
@@ -87,7 +88,10 @@ Decision made. Implementation slice in progress.
 - ~~`TASK-076`~~ inbox_classify job (roleforge/jobs/inbox_classify.py); intake label IDs from config/env
 - ~~`TASK-077`~~ employer thread matching + `employer_threads` record creation (roleforge/employer_thread_matching.py, roleforge/jobs/employer_thread_match.py)
 - ~~`TASK-078`~~ application state transitions via Telegram (`roleforge.application_lifecycle`)
-- `TASK-079` through `TASK-082`
+- ~~`TASK-079`~~ interview event extraction (deterministic-first: meeting links + best-effort datetime parsing; idempotent via `interview_events.notes.source_gmail_message_id`; job `python -m roleforge.jobs.interview_event_extract`)
+- ~~`TASK-080`~~ Telegram application update notifications (job `python -m roleforge.jobs.application_notify`; disabled by default via `APPLICATION_NOTIFY_ENABLED`; auditable via `telegram_deliveries.delivery_type='application_update'`)
+- ~~`TASK-081`~~ AI company briefer artifacts in `interview_events.notes.ai_briefing` (prompt-versioned, bounded; job `python -m roleforge.jobs.interview_event_ai_enrich`; disabled by default via `INTERVIEW_AI_ENRICH_ENABLED`)
+- ~~`TASK-082`~~ AI prep checklist artifacts in `interview_events.notes.prep_checklist` (same job/governance)
 
 Зависимости:
 - `TASK-071` state machine and schema direction is now fixed
@@ -111,10 +115,17 @@ Decision:
 
 ### Block H: EPIC-19 Web UI
 
-Scope decision fixed. Implementation can wait until the current v5 flow is more mature.
+Scope decision fixed. Foundation implementation completed.
 
 - ~~`TASK-093`~~ scope decision documented in `docs/specs/v7-web-ui.md`
-- `TASK-094` through `TASK-101`
+- ~~`TASK-094`~~ FastAPI + Jinja2 + HTMX scaffold (`roleforge/web/`)
+- ~~`TASK-095`~~ Bearer token auth middleware (env/keyring `WEB_BEARER_TOKEN`)
+- ~~`TASK-096`~~ analytics dashboard (read-only, DB-backed `/analytics`)
+- ~~`TASK-099`~~ system health panel (read-only `/system-health`)
+- ~~`TASK-101`~~ source management view (feeds/monitors `/sources` + HTMX toggles)
+- ~~`TASK-097`~~ queue browser (web `/queue-browser`, bulk actions via existing `queue.apply_review_action`)
+- ~~`TASK-098`~~ profile editor (web `/profiles`, guardrails + audit via `job_runs` job_type `web_profile_edit`)
+- `TASK-100` later wave (application workspace timeline)
 
 Зависимость:
 - scope decision уже принят; implementation можно начинать, когда v5 flow достаточно стабилен
@@ -233,4 +244,4 @@ python /var/home/user/Projects/roleforge/scripts/report_profile_stats.py --days 
 4. ~~`EPIC-16`~~ (closed)
 5. `EPIC-17`
 6. `TASK-079` through `TASK-082`
-7. `EPIC-19`
+7. `TASK-100`

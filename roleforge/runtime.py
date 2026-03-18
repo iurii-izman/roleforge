@@ -34,6 +34,7 @@ _ENV_TO_KEYRING: dict[str, tuple[str, str]] = {
     "OPENAI_API_KEY": ("openai", "api_key"),
     "ANTHROPIC_API_KEY": ("anthropic", "api_key"),
     "LINEAR_API_KEY": ("linear", "api_key"),
+    "WEB_BEARER_TOKEN": ("app", "web_bearer_token"),
 }
 
 
@@ -84,6 +85,7 @@ def require_setting(name: str) -> str:
     value = get_setting(name)
     if value in (None, ""):
         raise RuntimeError(f"Missing required setting: {name}")
+    assert value is not None
     return value
 
 

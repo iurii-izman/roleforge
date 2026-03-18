@@ -19,7 +19,7 @@ def log_job_start(conn: Any, job_type: str) -> UUID:
     """
     Insert a running job into job_runs. Returns the run id.
 
-    job_type: 'gmail_poll' | 'digest' | 'queue' | 'replay' | 'feed_poll' | 'monitor_poll' | 'alert' | 'batch' | 'inbox_classify' | 'employer_thread_match'
+    job_type: 'gmail_poll' | 'digest' | 'queue' | 'replay' | 'feed_poll' | 'monitor_poll' | 'alert' | 'batch' | 'inbox_classify' | 'employer_thread_match' | 'interview_event_extract' | 'application_notify' | 'interview_event_ai_enrich'
     """
     with conn.cursor() as cur:
         cur.execute(

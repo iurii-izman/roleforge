@@ -22,33 +22,32 @@
 
 ## Current State
 
-- EPIC-17 remains In Progress in Linear and GitHub.
-- TASK-071 through TASK-078 and TASK-083 are Done in the repo.
+- EPIC-17 is Done in Linear and GitHub (repo-confirmed).
+- TASK-071 through TASK-083 are Done in the repo.
 - EPIC-18 is resolved by product decision: keep `salary_raw` only; no `salary_structured` in the current roadmap.
 - TASK-093 is Done as a scope decision in `docs/specs/v7-web-ui.md`.
 - Application state transitions: `roleforge.application_lifecycle` (apply_application_transition, is_allowed_transition); Telegram handlers call it with application_id and target status.
-- `python -m pytest` passed with 217 tests.
+- EPIC-19 foundation slice is Done: TASK-094, TASK-095, TASK-096, TASK-097, TASK-098, TASK-099, TASK-101 are complete.
+- EPIC-19 remains In Progress only because TASK-100 (application workspace timeline view) is still open.
+- `python -m pytest tests/ -q` passed with 241 tests.
 
 ## Done In This Session
 
-- **TASK-078:** Application state transitions via Telegram actions. Module `roleforge/application_lifecycle.py` with state machine (allowed transitions per v5), apply_application_transition, get_current_status; 16 tests; v5 spec and README updated with Telegram contract.
-- **EPIC-18 / TASK-089 / TASK-090:** Closed by explicit product decision: keep `salary_raw` only, do not add `salary_structured` or salary-aware scoring in the current roadmap.
-- **TASK-093:** Web UI scope fixed in `docs/specs/v7-web-ui.md`.
+- **EPIC-19 web operator console:** analytics, system health, sources, queue browser, and profile editor implemented and covered by tests.
 
 ## Next Best Block
 
-- **TASK-079:** Interview event extraction from employer emails.
-- Then TASK-080 (application update notifications).
+- **EPIC-19 next:** `TASK-100` application workspace timeline view. Do not close EPIC-19 yet.
 
 ## User Prep
 
-- none for TASK-079 by default.
+- none.
 
 ## First Actions
 
-1. Start TASK-079: interview event extraction from employer threads.
-2. Prefer a deterministic first pass for extracting datetime / meeting link / short notes into `interview_events`.
-3. Run pytest after changes; update Linear/GitHub when done.
+1. Implement `TASK-100`: application workspace timeline view in the web console.
+2. Reuse the existing v5 schema (`applications`, `employer_threads`, `interview_events`) and keep the view read-mostly first.
+3. Run `python -m pytest tests/ -q`; update Linear then GitHub mirror; regenerate next prompts.
 
 ## Constraints
 

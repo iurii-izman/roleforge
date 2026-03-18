@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="card">
+    <h2 class="h2">System health</h2>
+    <div class="muted">Last 5 runs per job type (query-backed from <code>job_runs</code>).</div>
+  </div>
+
+  {% for job_type, runs in job_runs_by_type.items() %}
+    <div class="card mt14">
+      <h3 class="h3">{{ job_type }}</h3>
+      <table class="table">
+        <tr><th align="left">Status</th><th align="left">Started</th><th align="left">Finished</th></tr>
+        {% for r in runs %}
+          <tr>
+            <td>{{ r.status }}</td>
+            <td class="muted">{{ r.started_at }}</td>
+            <td class="muted">{{ r.finished_at }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% endfor %}
+{% endblock %}
+

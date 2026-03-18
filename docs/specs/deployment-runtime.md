@@ -23,6 +23,9 @@ This spec defines the minimum deployment contract for the Gmail-only, Postgres-f
   - `python -m roleforge.jobs.replay` – manual replay helpers.
   - `python -m roleforge.jobs.inbox_classify` – classify stored Gmail messages (set `gmail_messages.classified_as`); uses intake label from config (see below).
   - `python -m roleforge.jobs.employer_thread_match` – create/update `employer_threads` by linking employer replies to applications via Gmail thread ID.
+  - `python -m roleforge.jobs.interview_event_extract` – extract interview signals (meeting links, best-effort datetime) from employer replies into `interview_events`.
+  - `python -m roleforge.jobs.application_notify` – send low-noise Telegram updates for application lifecycle signals (disabled by default; see env below).
+  - `python -m roleforge.jobs.interview_event_ai_enrich` – AI enrich interview events (company brief + prep checklist) into `interview_events.notes` (disabled by default; see env below).
 - **Scheduling**: done either by the hosting platform/external scheduler or by the optional in-process `roleforge.scheduler` loop. RoleForge itself is stateless between runs and assumes Postgres as the source of truth.
 
 ## 2. Environment contract
@@ -34,6 +37,7 @@ The runtime reads configuration from environment variables. Local development ma
 - `APP_ENV` — `development` \| `staging` \| `production`; defaults to `development`.
 - `APP_PORT` — port for any HTTP endpoints (health, Telegram webhook).
 - `LOG_LEVEL` — optional; `INFO` by default.
+- `WEB_BEARER_TOKEN` — optional for local dev; required for hosted web UI. Used by `roleforge.web` Bearer auth middleware.
 
 ### 2.2 Postgres (system of record)
 
@@ -58,10 +62,22 @@ The runtime reads configuration from environment variables. Local development ma
 
 - `TELEGRAM_BOT_TOKEN` — bot token.
 - `TELEGRAM_CHAT_ID` — primary chat/channel for digests.
+- `TELEGRAM_APPLICATION_CHAT_ID` — optional; override chat for application updates (defaults to `TELEGRAM_CHAT_ID`).
 - `TELEGRAM_ADMIN_CHAT_ID` — chat/user for admin alerts (may equal `TELEGRAM_CHAT_ID` in MVP).
 - Optional webhook-related variables (only if webhook mode is used per Telegram spec):
   - `TELEGRAM_WEBHOOK_URL` — full HTTPS URL for the bot webhook.
   - `TELEGRAM_WEBHOOK_SECRET` — shared secret token, if the hosting platform supports it.
+
+### 2.4.1 Application update notifications (v5)
+
+- `APPLICATION_NOTIFY_ENABLED` — `true`/`false`; default false (digest-first, low-noise). When true, `python -m roleforge.jobs.application_notify` can send application update messages (employer thread linked, interview event created).
+
+### 2.6.1 Interview AI enrichment (v5, optional)
+
+- `INTERVIEW_AI_ENRICH_ENABLED` — `true`/`false`; default false. When true, `python -m roleforge.jobs.interview_event_ai_enrich` writes `ai_briefing` and `prep_checklist` artifacts to `interview_events.notes`.
+- `INTERVIEW_AI_MODEL` — optional pinned model override (defaults to provider’s default pinned model).
+- `INTERVIEW_AI_MAX_PER_RUN` — optional int cap per run (default 10).
+- `INTERVIEW_AI_REENRICH` — `true`/`false`; default false. If true, overwrites existing `ai_briefing` / `prep_checklist` artifacts.
 
 ### 2.5 AI provider (single in MVP)
 

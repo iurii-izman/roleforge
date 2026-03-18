@@ -4,19 +4,21 @@
 
 ---
 
-## 1. Delivery modes and coexistence (digest, queue, alert, batch)
+## 1. Delivery modes and coexistence (digest, queue, alert, batch, application updates)
 
-Four delivery paths can run independently; all use the same Telegram chat and `telegram_deliveries` audit log.
+Five delivery paths can run independently; all use the same Telegram chat and `telegram_deliveries` audit log.
 
-| Mode    | Trigger              | Content                         | When to use |
-|---------|----------------------|---------------------------------|-------------|
+| Mode | Trigger | Content | When to use |
+| --- | --- | --- | --- |
 | **Digest** | Scheduled (e.g. daily) | Summary by profile, counts, top highlights | Primary low-noise view; default. |
-| **Queue**  | User request (/queue, Next) | One card at a time, actions update state | Pull-based review; no auto-push. |
-| **Alert**  | Job run (`python -m roleforge.jobs.alert`) | One message per high-score match (score ≥ `immediate_threshold`) | Optional near-real-time for top matches; per-profile `alert_enabled`. |
-| **Batch**  | Job run (`python -m roleforge.jobs.batch`) | One message per profile with mid-band matches (score in `[batch_threshold, immediate_threshold)`) | Optional middle path between alert and digest; per-profile `batch_enabled`. |
+| **Queue** | User request (/queue, Next) | One card at a time, actions update state | Pull-based review; no auto-push. |
+| **Alert** | Job run (`python -m roleforge.jobs.alert`) | One message per high-score match (score ≥ `immediate_threshold`) | Optional near-real-time for top matches; per-profile `alert_enabled`. |
+| **Batch** | Job run (`python -m roleforge.jobs.batch`) | One message per profile with mid-band matches (score in `[batch_threshold, immediate_threshold)`) | Optional middle path between alert and digest; per-profile `batch_enabled`. |
+| **Application updates** | Job run (`python -m roleforge.jobs.application_notify`) | Employer reply detected / interview event created | Optional v5 lifecycle updates; disabled by default (digest-first). |
 
 - **No instant alert by default:** Digest and queue are the baseline. Alert and batch are **opt-in per profile** via `profiles.config.delivery_mode` (see [Profile schema](profile-schema.md)).
 - **Idempotency:** Alert and batch jobs only send for matches that have not already been sent as that type; sends are logged in `telegram_deliveries` with `delivery_type='alert'` or `delivery_type='batch'` and `payload.profile_match_id` (or list of ids for batch).
+- **Application update notifications (v5):** Disabled by default. When enabled (`APPLICATION_NOTIFY_ENABLED=true`), the notify job sends only first-time updates and logs to `telegram_deliveries` with `delivery_type='application_update'`.
 - **Admin path:** Operational failures use `delivery_type='admin_alert'` (TASK-039, TASK-103); see [Admin alert path](admin-alert-path.md).
 
 ---
@@ -52,7 +54,7 @@ Four delivery paths can run independently; all use the same Telegram chat and `t
 ## 5. Message outline (MVP + v4)
 
 | Message type | When | Content |
-|--------------|------|---------|
+| --- | --- | --- |
 | **Digest** | On schedule | Title "RoleForge digest". Per profile: "Profile X: N new, M shortlisted." Top 3–5 items (title, company, score). "Open queue: [link]". |
 | **Queue card** | On user request (next) | One vacancy: title, company, location, score, link. Buttons: Open, Shortlist, Later, Ignore, Applied, Next. |
 | **Queue empty** | After last card | "No more items in queue." |
