@@ -236,3 +236,180 @@ def get_profile(conn: Any, profile_id: str) -> dict[str, Any] | None:
         return None
     return {"id": str(row[0]), "name": row[1], "config": row[2] or {}, "created_at": row[3]}
 
+
+def applications_overview(conn: Any, *, days: int = 90) -> list[dict[str, Any]]:
+    """
+    Return recent applications with basic vacancy/profile context.
+    """
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+              a.id,
+              a.status,
+              a.applied_at,
+              a.updated_at,
+              v.title,
+              v.company,
+              v.location,
+              v.canonical_url,
+              p.name AS profile_name,
+              COALESCE((
+                SELECT COUNT(*)
+                FROM interview_events ie
+                WHERE ie.application_id = a.id
+              ), 0) AS interview_count
+            FROM applications a
+            JOIN profile_matches pm ON pm.id = a.profile_match_id
+            JOIN profiles p ON p.id = pm.profile_id
+            JOIN vacancies v ON v.id = a.vacancy_id
+            WHERE a.applied_at >= %s
+            ORDER BY a.applied_at DESC
+            """,
+            (since,),
+        )
+        rows = cur.fetchall()
+    out: list[dict[str, Any]] = []
+    for r in rows:
+        out.append(
+            {
+                "application_id": str(r[0]),
+                "status": r[1],
+                "applied_at": r[2],
+                "updated_at": r[3],
+                "title": r[4],
+                "company": r[5],
+                "location": r[6],
+                "url": r[7],
+                "profile_name": r[8],
+                "interview_count": int(r[9] or 0),
+            }
+        )
+    return out
+
+
+def application_timeline(conn: Any, application_id: str) -> dict[str, Any] | None:
+    """
+    Return a chronological timeline for a single application, including
+    vacancy context, employer threads, and interview events.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+              a.id,
+              a.status,
+              a.applied_at,
+              a.updated_at,
+              a.notes,
+              v.title,
+              v.company,
+              v.location,
+              v.canonical_url,
+              v.ai_metadata,
+              p.name AS profile_name
+            FROM applications a
+            JOIN profile_matches pm ON pm.id = a.profile_match_id
+            JOIN profiles p ON p.id = pm.profile_id
+            JOIN vacancies v ON v.id = a.vacancy_id
+            WHERE a.id = %s
+            """,
+            (application_id,),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+
+        application = {
+            "application_id": str(row[0]),
+            "status": row[1],
+            "applied_at": row[2],
+            "updated_at": row[3],
+            "notes": row[4] or {},
+            "title": row[5],
+            "company": row[6],
+            "location": row[7],
+            "url": row[8],
+            "ai_metadata": row[9] or {},
+            "profile_name": row[10],
+        }
+
+        # Employer thread events.
+        cur.execute(
+            """
+            SELECT gmail_thread_id, company_domain, last_message_at, classification, created_at
+            FROM employer_threads
+            WHERE application_id = %s
+            ORDER BY COALESCE(last_message_at, created_at) ASC
+            """,
+            (application_id,),
+        )
+        thread_rows = cur.fetchall()
+
+        # Interview events.
+        cur.execute(
+            """
+            SELECT event_type, scheduled_at, notes, created_at
+            FROM interview_events
+            WHERE application_id = %s
+            ORDER BY COALESCE(scheduled_at, created_at) ASC
+            """,
+            (application_id,),
+        )
+        interview_rows = cur.fetchall()
+
+    events: list[dict[str, Any]] = []
+
+    # Initial application event.
+    events.append(
+        {
+            "kind": "status",
+            "at": application["applied_at"],
+            "label": "Applied",
+            "details": f"Status: applied",
+        }
+    )
+    # Current status event if it changed and we have an updated_at timestamp.
+    if application["updated_at"] and application["updated_at"] != application["applied_at"]:
+        events.append(
+            {
+                "kind": "status",
+                "at": application["updated_at"],
+                "label": "Status updated",
+                "details": f"Current status: {application['status']}",
+            }
+        )
+
+    for tr in thread_rows:
+        at = tr[2] or tr[4]
+        domain = tr[1] or ""
+        label = "Employer thread activity"
+        if domain:
+            label = f"Employer thread ({domain})"
+        events.append(
+            {
+                "kind": "employer_thread",
+                "at": at,
+                "label": label,
+                "details": "Employer conversation updated",
+            }
+        )
+
+    for ev in interview_rows:
+        ev_type = ev[0]
+        at = ev[1] or ev[3]
+        events.append(
+            {
+                "kind": "interview_event",
+                "at": at,
+                "label": f"Interview event: {ev_type}",
+                "details": "Interview or related event recorded",
+            }
+        )
+
+    # Sort defensively by timestamp, keeping stable order for equal timestamps.
+    events.sort(key=lambda e: (e["at"] or datetime.min.replace(tzinfo=timezone.utc)))
+
+    return {"application": application, "events": events}
+

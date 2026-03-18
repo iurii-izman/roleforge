@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1 class="h2 mb8">Applications workspace</h1>
+  <p class="muted mb8">Read-only timeline-friendly view over recent applications. Telegram remains the primary action surface.</p>
+  <div class="card mt14">
+    <table class="table">
+      <thead>
+        <tr class="muted">
+          <th align="left">Applied</th>
+          <th align="left">Profile</th>
+          <th align="left">Vacancy</th>
+          <th align="left">Company</th>
+          <th align="left">Status</th>
+          <th align="right">Interviews</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in applications %}
+          <tr>
+            <td>{{ a.applied_at }}</td>
+            <td>{{ a.profile_name }}</td>
+            <td>
+              <a href="/applications/{{ a.application_id }}">{{ a.title }}</a>
+            </td>
+            <td>{{ a.company }}</td>
+            <td>{{ a.status }}</td>
+            <td align="right">{{ a.interview_count }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6" class="muted">No applications in the last 90 days.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+

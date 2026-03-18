@@ -161,6 +161,45 @@ def create_app() -> FastAPI:
             {"request": request, "page_title": "Profiles", "profiles": profiles_list},
         )
 
+    @app.get("/applications", response_class=HTMLResponse)
+    def applications(request: Request) -> HTMLResponse:
+        conn = connect_db()
+        try:
+            items = queries.applications_overview(conn, days=90)
+        finally:
+            conn.close()
+        return templates.TemplateResponse(
+            "applications.html",
+            {
+                "request": request,
+                "page_title": "Applications",
+                "applications": items,
+            },
+        )
+
+    @app.get("/applications/{application_id}", response_class=HTMLResponse)
+    def application_detail(request: Request, application_id: str) -> HTMLResponse:
+        conn = connect_db()
+        try:
+            data = queries.application_timeline(conn, application_id)
+        finally:
+            conn.close()
+        if not data:
+            return templates.TemplateResponse(
+                "application_detail.html",
+                {"request": request, "page_title": "Applications", "not_found": True},
+                status_code=404,
+            )
+        return templates.TemplateResponse(
+            "application_detail.html",
+            {
+                "request": request,
+                "page_title": "Applications",
+                "application": data["application"],
+                "events": data["events"],
+            },
+        )
+
     @app.get("/profiles/{profile_id}", response_class=HTMLResponse)
     def profile_detail(request: Request, profile_id: str) -> HTMLResponse:
         conn = connect_db()

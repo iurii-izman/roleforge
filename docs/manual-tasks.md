@@ -115,7 +115,7 @@ Decision:
 
 ### Block H: EPIC-19 Web UI
 
-Scope decision fixed. Foundation implementation completed.
+Scope decision fixed. Implementation completed; EPIC-19 is closed.
 
 - ~~`TASK-093`~~ scope decision documented in `docs/specs/v7-web-ui.md`
 - ~~`TASK-094`~~ FastAPI + Jinja2 + HTMX scaffold (`roleforge/web/`)
@@ -125,10 +125,10 @@ Scope decision fixed. Foundation implementation completed.
 - ~~`TASK-101`~~ source management view (feeds/monitors `/sources` + HTMX toggles)
 - ~~`TASK-097`~~ queue browser (web `/queue-browser`, bulk actions via existing `queue.apply_review_action`)
 - ~~`TASK-098`~~ profile editor (web `/profiles`, guardrails + audit via `job_runs` job_type `web_profile_edit`)
-- `TASK-100` later wave (application workspace timeline)
+- ~~`TASK-100`~~ application workspace timeline view (read-mostly `/applications` and `/applications/{id}`)
 
 Зависимость:
-- scope decision уже принят; implementation можно начинать, когда v5 flow достаточно стабилен
+- scope decision уже принят; v5 lifecycle is stable enough for workspace views
 
 ## User decision blocks
 

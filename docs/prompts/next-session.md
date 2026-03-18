@@ -27,17 +27,24 @@
 - EPIC-18 is resolved by product decision: keep `salary_raw` only; no `salary_structured` in the current roadmap.
 - TASK-093 is Done as a scope decision in `docs/specs/v7-web-ui.md`.
 - Application state transitions: `roleforge.application_lifecycle` (apply_application_transition, is_allowed_transition); Telegram handlers call it with application_id and target status.
-- EPIC-19 foundation slice is Done: TASK-094, TASK-095, TASK-096, TASK-097, TASK-098, TASK-099, TASK-101 are complete.
-- EPIC-19 remains In Progress only because TASK-100 (application workspace timeline view) is still open.
-- `python -m pytest tests/ -q` passed with 241 tests.
+- EPIC-19 is Done in the repo and in tracking systems; all child tasks including `TASK-100` are complete.
+- Application workspace timeline view exists as a read-only web slice: `/applications` and `/applications/{id}` list applications and show chronological events over applications, employer threads, and interview events.
+- `python -m pytest tests/ -q` passed with 243 tests.
 
 ## Done In This Session
 
-- **EPIC-19 web operator console:** analytics, system health, sources, queue browser, and profile editor implemented and covered by tests.
+- **TASK-100:** application workspace timeline view:
+  - `/applications`: recent applications with vacancy, profile, status, and interview count.
+  - `/applications/{id}`: read-only chronological timeline combining application events, employer thread activity, and interview events with vacancy and profile context.
+  - Queries implemented in `roleforge/web/queries.py`; templates in `roleforge/web/templates/`; docs, backlog, and prompts updated; tests for queries added.
 
 ## Next Best Block
 
-- **EPIC-19 next:** `TASK-100` application workspace timeline view. Do not close EPIC-19 yet.
+- The tracked roadmap backlog in `docs/backlog/roleforge-backlog.json` is now fully complete.
+- The next session should be a structured close-out and next-phase planning pass:
+  - audit what shipped across MVP through v7,
+  - verify tracker hygiene across Linear and GitHub,
+  - identify the next product phase or new epic set based on real gaps, not placeholder scope.
 
 ## User Prep
 
@@ -45,9 +52,9 @@
 
 ## First Actions
 
-1. Implement `TASK-100`: application workspace timeline view in the web console.
-2. Reuse the existing v5 schema (`applications`, `employer_threads`, `interview_events`) and keep the view read-mostly first.
-3. Run `python -m pytest tests/ -q`; update Linear then GitHub mirror; regenerate next prompts.
+1. Audit the repository, docs, and trackers end-to-end and confirm that all existing roadmap epics are actually complete in code.
+2. Produce a concise next-phase recommendation: what should come after the completed backlog, and why.
+3. If a new phase is defined, turn it into concrete epics/tasks in docs first, then sync Linear and GitHub, then regenerate the next-session prompts.
 
 ## Constraints
 

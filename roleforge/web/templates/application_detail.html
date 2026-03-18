@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% if not_found %}
+    <h1 class="h2 mb8">Application not found</h1>
+    <p class="muted">The requested application does not exist.</p>
+  {% else %}
+    <h1 class="h2 mb8">Application timeline</h1>
+    <div class="card mb8">
+      <div class="h3">{{ application.title }}</div>
+      <div class="muted">{{ application.company }} · {{ application.location }}</div>
+      <div class="mt14">
+        <span class="muted">Profile:</span> {{ application.profile_name }}<br />
+        <span class="muted">Current status:</span> {{ application.status }}<br />
+        <span class="muted">Applied at:</span> {{ application.applied_at }}
+        {% if application.url %}
+          <br /><span class="muted">Vacancy link:</span> <a href="{{ application.url }}" target="_blank" rel="noreferrer">open</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="h3 mb8">Timeline</div>
+      <ul style="list-style: none; padding-left: 0; margin: 0;">
+        {% for e in events %}
+          <li style="margin-bottom: 10px;">
+            <div class="muted" style="font-size: 12px;">{{ e.at }}</div>
+            <div>{{ e.label }}</div>
+            <div class="muted" style="font-size: 12px;">{{ e.details }}</div>
+          </li>
+        {% else %}
+          <li class="muted">No events recorded for this application yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endblock %}
+

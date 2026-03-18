@@ -58,6 +58,11 @@ The first approved web scope is:
    - inspect `profiles.config`
    - edit scoring and filter settings in a controlled way
 
+6. **Application workspace (later wave, EPIC-19 second slice)**
+   - read-only applications list and detail views (`/applications`, `/applications/{id}`)
+   - chronological workspace timeline over applications, employer threads, and interview events
+   - vacancy, profile, and company context visible alongside the timeline
+
 ---
 
 ## 4. Deferred from the first web slice
@@ -69,7 +74,8 @@ These are explicitly **not required** for the first web implementation:
 - a full Telegram replacement
 - rich visual design system work
 - calendar sync UI
-- a complex application workspace as the very first v7 milestone
+
+The complex application workspace was intentionally deferred from the very first v7 milestone and is now implemented as a focused read-mostly slice (`TASK-100`) without changing the Telegram-first model.
 
 The **application workspace** is allowed later inside EPIC-19, but it is a second-wave feature after analytics, health, source management, and queue browsing are stable.
 
