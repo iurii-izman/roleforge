@@ -12,8 +12,9 @@
 - `TASK-062` (AI enrichment contract) и `TASK-067` (AI governance в architecture) закрыты; контракт в [docs/specs/ai-enrichment-contract.md](specs/ai-enrichment-contract.md).
 - `EPIC-15` (AI Enrichment) закрыта: TASK-061 (миграция ai_metadata), TASK-063 (enrichment.py), TASK-064 (run_enrichment_for_high_scores), TASK-065 (ai_cost_usd в summary), TASK-066 (prompts/enrichment.py).
 - `EPIC-16` (Scheduler) закрыт: TASK-068 (research), TASK-069 (scheduler), TASK-070 (docs).
-- `EPIC-18` (Market Monitoring) core path закрыт: TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092; optional salary tail TASK-089/TASK-090 остаётся deferred.
-- `EPIC-17` decision block закрыт: TASK-071 state machine + schema plan зафиксированы; TASK-072 (classified_as), TASK-073 (inbox classifier spec), TASK-074 (AI inbox classification contract), TASK-075 (inbox_classifier.py), TASK-076 (inbox_classify job), TASK-077 (employer thread matching), TASK-083 (lifecycle spec) закрыты; следующий блок — TASK-078 (Telegram state transitions).
+- `EPIC-18` (Market Monitoring) закрыт: core path TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092 реализованы; salary tail TASK-089/TASK-090 закрыт product-decision'ом — остаёмся на `salary_raw`, без `salary_structured` в текущем roadmap.
+- `EPIC-17` decision block: TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-076, TASK-077, TASK-078 (application state transitions via Telegram: `roleforge.application_lifecycle`), TASK-083 закрыты; следующий блок — TASK-079 (interview event extraction).
+- `TASK-093` закрыт: web UI scope зафиксирован как single-user operator console; следующий реальный блок по `EPIC-19` начинается с `TASK-094`, когда дойдём до web wave.
 
 ## Autopilot blocks
 
@@ -85,7 +86,8 @@ Decision made. Implementation slice in progress.
 - ~~`TASK-075`~~ implement roleforge/inbox_classifier.py (deterministic rules)
 - ~~`TASK-076`~~ inbox_classify job (roleforge/jobs/inbox_classify.py); intake label IDs from config/env
 - ~~`TASK-077`~~ employer thread matching + `employer_threads` record creation (roleforge/employer_thread_matching.py, roleforge/jobs/employer_thread_match.py)
-- `TASK-078` through `TASK-082`
+- ~~`TASK-078`~~ application state transitions via Telegram (`roleforge.application_lifecycle`)
+- `TASK-079` through `TASK-082`
 
 Зависимости:
 - `TASK-071` state machine and schema direction is now fixed
@@ -93,7 +95,7 @@ Decision made. Implementation slice in progress.
 
 ### Block G: EPIC-18 Market Monitoring
 
-Core path closed. HH.ru monitoring now exists as a safe, reversible sweep over the same normalized vacancy pipeline. Optional salary modeling stays deferred until there is an explicit product reason.
+Closed. HH.ru monitoring exists as a safe, reversible sweep over the same normalized vacancy pipeline. Product decision: keep `salary_raw` only; do not add `salary_structured` or salary-aware scoring in the current roadmap.
 
 - ~~`TASK-084`~~ HH.ru research
 - ~~`TASK-085`~~ monitor registry
@@ -103,21 +105,19 @@ Core path closed. HH.ru monitoring now exists as a safe, reversible sweep over t
 - ~~`TASK-091`~~ ToS/rate-limit docs
 - ~~`TASK-092`~~ market monitoring spec
 
-Опциональный хвост:
-- `TASK-089`
-- `TASK-090`
-
-Зависимости:
-- `TASK-089`/`TASK-090` остаются blocked-by-product-decision
+Decision:
+- ~~`TASK-089`~~ no-op by product decision: keep `salary_raw`
+- ~~`TASK-090`~~ no-op by product decision: do not extend scoring with salary
 
 ### Block H: EPIC-19 Web UI
 
-Не начинать до появления стабильных v4/v5 flows.
+Scope decision fixed. Implementation can wait until the current v5 flow is more mature.
 
+- ~~`TASK-093`~~ scope decision documented in `docs/specs/v7-web-ui.md`
 - `TASK-094` through `TASK-101`
 
 Зависимость:
-- сначала нужен `TASK-093` scope decision
+- scope decision уже принят; implementation можно начинать, когда v5 flow достаточно стабилен
 
 ## User decision blocks
 
@@ -171,27 +171,30 @@ Core path closed. HH.ru monitoring now exists as a safe, reversible sweep over t
 Связанный backlog:
 - `TASK-089`
 
-Нужно решить:
-- нужен ли `salary_structured` уже в `v6`
-- какие поля минимальны
-- salary входит только в filters или ещё и в scoring
+Статус:
+- решено: `salary_structured` не вводим в текущем roadmap
+- остаёмся на `salary_raw TEXT`
+- salary не участвует в scoring и не добавляется в hard filters как structured field
 
-После решения:
-- можно делать `TASK-090`
+Причина:
+- низкий ROI против дополнительной schema/support complexity
+- для operator context и ручного отбора текущего `salary_raw` достаточно
+- если позже появится реальная потребность в salary-aware automation, это можно вернуть отдельной новой волной
 
 ### Decision 5: Web UI scope
 
 Связанный backlog:
 - `TASK-093`
 
-Нужно решить:
-- что остаётся Telegram-first
-- что переезжает в web
-- что read-only, а что editable
-- нужен ли auth only for self-use или закладываем future multi-user constraints
+Статус:
+- решено и должно жить в `docs/specs/v7-web-ui.md`
 
-После решения:
-- можно делать `EPIC-19`
+Принятый scope:
+- single-user only
+- Bearer token auth
+- Telegram остаётся primary delivery and action surface
+- web нужен как operator console: analytics, system health, source management, queue browser, profile inspection/editing
+- application workspace допустим, но как later wave внутри `EPIC-19`, не как стартовый обязательный блок
 
 ## Manual checks and rituals
 
@@ -228,9 +231,6 @@ python /var/home/user/Projects/roleforge/scripts/report_profile_stats.py --days 
 2. ~~`TASK-062`~~ (closed), ~~`TASK-067`~~ (closed)
 3. ~~`EPIC-15`~~ (closed)
 4. ~~`EPIC-16`~~ (closed)
-5. `EPIC-17` / `EPIC-18`
-5. `TASK-071` decision
-6. `EPIC-17`
-7. `EPIC-18`
-8. `TASK-093` decision
-9. `EPIC-19`
+5. `EPIC-17`
+6. `TASK-079` through `TASK-082`
+7. `EPIC-19`

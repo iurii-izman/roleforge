@@ -126,6 +126,8 @@ The v5 schema is additive only. It introduces three tables and keeps the current
 4. Telegram remains the control surface for confirming status changes.
 5. Any later AI assistance is bounded to classification or extraction, and only after scoring.
 
+**Telegram action contract (TASK-078):** When the operator triggers a status change from Telegram (e.g. inline button or command), the handler obtains `application_id` and target `status` from the callback, then calls `roleforge.application_lifecycle.apply_application_transition(conn, application_id, status)`. The module validates the transition against the approved state machine and rejects invalid jumps; `applications.updated_at` is updated for auditability.
+
 ---
 
 ## 5. Deferred scope
@@ -149,7 +151,7 @@ The v5 schema is additive only. It introduces three tables and keeps the current
 | `TASK-075` | Implement the inbox classifier module. → `roleforge.inbox_classifier`. |
 | `TASK-076` | Run inbox classification as a job. |
 | `TASK-077` | Create employer thread records. |
-| `TASK-078` | Implement state transitions via Telegram actions. |
+| `TASK-078` | Implement state transitions via Telegram actions. → `roleforge.application_lifecycle` (apply_application_transition, is_allowed_transition). |
 | `TASK-079` | Extract interview events from employer emails. |
 | `TASK-080` | Notify Telegram on application updates. |
 | `TASK-081` | Add the company briefer AI output. |

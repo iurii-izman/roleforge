@@ -67,8 +67,7 @@ score bands (high-score ≥ 0.75 vacancies must be qualitatively better matches 
 - `MONITOR_INTAKE_ENABLED` global kill-switch
 - HH.ru API adapter: `roleforge/monitors/hh.py`, emits standard candidate shape
 - `monitor_poll` job: reads registry, runs enabled monitors, logs to `job_runs`
-- Optional structured salary modeling: add `vacancies.salary_structured JSONB` only if salary-aware filtering becomes worth the extra schema
-- Salary range filtering in hard_filters stays deferred until salary modeling is explicitly approved
+- Product decision: keep `salary_raw` only in the current roadmap; do not add `salary_structured` or salary-aware scoring yet
 - ToS review and rate-limit policy documented before implementation
 - See [research-v4-plus.md](research-v4-plus.md) §4.3 for full version research
 
@@ -82,6 +81,7 @@ score bands (high-score ≥ 0.75 vacancies must be qualitatively better matches 
 - Queue browser: full sortable table, multi-select bulk actions
 - Profile editor: view/edit `profiles.config` (keywords, filters, delivery mode)
 - System health panel: `job_runs` log, last-N per job type, status indicators
-- Application tracking workspace (requires v5 schema)
+- Application tracking workspace (requires v5 schema; later wave inside EPIC-19)
 - Source management: enable/disable feeds and monitors
+- Scope contract: see [v7 web UI scope](specs/v7-web-ui.md)
 - See [research-v4-plus.md](research-v4-plus.md) §4.4 for full version research

@@ -17,59 +17,43 @@
 - schema/004_application_lifecycle.sql
 - schema/005_gmail_classified.sql
 - docs/manual-tasks.md
-- roleforge/inbox_classifier.py (and tests/test_inbox_classifier.py)
+- roleforge/application_lifecycle.py (and tests/test_application_lifecycle.py)
 - any files changed in the previous session that are directly relevant
 
 ## Current State
 
 - EPIC-17 remains In Progress in Linear and GitHub.
-- TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-076, TASK-077, and TASK-083 are Done in the repo.
-- v5 lifecycle spec and schema 004/005 in place; inbox classifier + job exist; employer thread matching exists.
-- docs/architecture.md, README.md, schema/README.md, and docs/manual-tasks.md are updated.
-- `python -m pytest` passed with 201 tests.
+- TASK-071 through TASK-078 and TASK-083 are Done in the repo.
+- EPIC-18 is resolved by product decision: keep `salary_raw` only; no `salary_structured` in the current roadmap.
+- TASK-093 is Done as a scope decision in `docs/specs/v7-web-ui.md`.
+- Application state transitions: `roleforge.application_lifecycle` (apply_application_transition, is_allowed_transition); Telegram handlers call it with application_id and target status.
+- `python -m pytest` passed with 217 tests.
 
 ## Done In This Session
 
-- **Linear/GitHub sync:** Marked TASK-072 and TASK-073 Done in Linear; closed GitHub issues #76 and #77 with close-out comments.
-- **TASK-074:** Wrote docs/specs/ai-inbox-classification-contract.md: when to call AI (only when `classified_as` NULL, cap per run), input (subject, snippet, from_domain), output (vacancy_alert | employer_reply | other), merge rule, timeout/retry/fallback, cost in job summary.
-- **TASK-075:** Implemented `roleforge/inbox_classifier.py`: deterministic rules (thread linked → employer_reply; intake label + single-message thread → vacancy_alert; subject/from heuristics; else ambiguous). Added `tests/test_inbox_classifier.py` (8 tests).
-- **TASK-076:** Implemented `roleforge/jobs/inbox_classify.py`: selects `classified_as IS NULL`, resolves intake label IDs from config/env, runs deterministic classifier, updates rows idempotently, and writes `job_runs`.
-- **TASK-077:** Implemented employer thread matching and `employer_threads` record creation.
-- **Linear/GitHub:** Mark TASK-076 and TASK-077 Done in Linear and close GitHub issues #80 and #81 with close-out comments.
+- **TASK-078:** Application state transitions via Telegram actions. Module `roleforge/application_lifecycle.py` with state machine (allowed transitions per v5), apply_application_transition, get_current_status; 16 tests; v5 spec and README updated with Telegram contract.
+- **EPIC-18 / TASK-089 / TASK-090:** Closed by explicit product decision: keep `salary_raw` only, do not add `salary_structured` or salary-aware scoring in the current roadmap.
+- **TASK-093:** Web UI scope fixed in `docs/specs/v7-web-ui.md`.
 
 ## Next Best Block
 
-- **TASK-078:** Implement application state transitions via Telegram actions.
-- Then TASK-079 (interview event extraction) and TASK-080 (application update notifications).
+- **TASK-079:** Interview event extraction from employer emails.
+- Then TASK-080 (application update notifications).
 
 ## User Prep
 
-- none for TASK-078 by default. If transition UX gets ambiguous, choose the smallest Telegram-first action model that matches the approved lifecycle states.
+- none for TASK-079 by default.
 
 ## First Actions
 
-1. Start TASK-078: wire Telegram actions to the `applications.status` state machine from `schema/004_application_lifecycle.sql`.
-2. Keep transitions explicit and auditable; reject invalid jumps.
-3. Run pytest after code changes; update Linear/GitHub when TASK-078 is done.
+1. Start TASK-079: interview event extraction from employer threads.
+2. Prefer a deterministic first pass for extracting datetime / meeting link / short notes into `interview_events`.
+3. Run pytest after changes; update Linear/GitHub when done.
 
 ## Constraints
 
-- Gmail-only MVP
-- Postgres-first
-- Telegram digest + review queue
-- one primary AI provider in MVP
-- keyring-first secrets under service=roleforge
-- AI only post-scoring
-- Do not close EPIC-18 until TASK-089 and TASK-090 are done
-- Do not move into full classifier or interview automation before the lifecycle state machine is approved
-
-## If Blocked
-
-- No user input needed for this block. If drift appears, reconcile Linear/GitHub and continue.
+- Gmail-only MVP, Postgres-first, Telegram digest + review queue, one primary AI provider, keyring-first secrets, AI only post-scoring. Keep Telegram as the primary action surface.
 
 ## On Completion
 
-- Update Linear first.
-- Update GitHub mirror second.
-- Leave close-out comments.
-- Generate a new next-session prompt from the actual outcome.
+- Update Linear first, then GitHub; leave close-out comments; generate a new next-session prompt.
