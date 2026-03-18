@@ -13,7 +13,7 @@
 - `EPIC-15` (AI Enrichment) закрыта: TASK-061 (миграция ai_metadata), TASK-063 (enrichment.py), TASK-064 (run_enrichment_for_high_scores), TASK-065 (ai_cost_usd в summary), TASK-066 (prompts/enrichment.py).
 - `EPIC-16` (Scheduler) закрыт: TASK-068 (research), TASK-069 (scheduler), TASK-070 (docs).
 - `EPIC-18` (Market Monitoring) core path закрыт: TASK-084, TASK-085, TASK-086, TASK-087, TASK-088, TASK-091, TASK-092; optional salary tail TASK-089/TASK-090 остаётся deferred.
-- `EPIC-17` decision block закрыт: TASK-071 state machine + schema plan зафиксированы; TASK-072 (classified_as), TASK-073 (inbox classifier spec), TASK-074 (AI inbox classification contract), TASK-075 (inbox_classifier.py), TASK-083 (lifecycle spec) закрыты; следующий блок — TASK-076 (inbox_classify job).
+- `EPIC-17` decision block закрыт: TASK-071 state machine + schema plan зафиксированы; TASK-072 (classified_as), TASK-073 (inbox classifier spec), TASK-074 (AI inbox classification contract), TASK-075 (inbox_classifier.py), TASK-076 (inbox_classify job), TASK-077 (employer thread matching), TASK-083 (lifecycle spec) закрыты; следующий блок — TASK-078 (Telegram state transitions).
 
 ## Autopilot blocks
 
@@ -83,7 +83,9 @@ Decision made. Implementation slice in progress.
 - ~~`TASK-073`~~ design deterministic inbox classifier (docs/specs/inbox-classifier.md)
 - ~~`TASK-074`~~ define AI classification contract for ambiguous emails (docs/specs/ai-inbox-classification-contract.md)
 - ~~`TASK-075`~~ implement roleforge/inbox_classifier.py (deterministic rules)
-- `TASK-076` (inbox_classify job) through `TASK-082`
+- ~~`TASK-076`~~ inbox_classify job (roleforge/jobs/inbox_classify.py); intake label IDs from config/env
+- ~~`TASK-077`~~ employer thread matching + `employer_threads` record creation (roleforge/employer_thread_matching.py, roleforge/jobs/employer_thread_match.py)
+- `TASK-078` through `TASK-082`
 
 Зависимости:
 - `TASK-071` state machine and schema direction is now fixed

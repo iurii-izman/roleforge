@@ -23,33 +23,34 @@
 ## Current State
 
 - EPIC-17 remains In Progress in Linear and GitHub.
-- TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, and TASK-083 are Done (Linear and GitHub updated).
-- v5 lifecycle spec and schema 004/005 in place; inbox classifier spec (TASK-073), AI inbox classification contract (TASK-074), and `roleforge.inbox_classifier` (TASK-075) implemented.
+- TASK-071, TASK-072, TASK-073, TASK-074, TASK-075, TASK-076, TASK-077, and TASK-083 are Done in the repo.
+- v5 lifecycle spec and schema 004/005 in place; inbox classifier + job exist; employer thread matching exists.
 - docs/architecture.md, README.md, schema/README.md, and docs/manual-tasks.md are updated.
-- `python -m pytest` passed with 186 tests.
+- `python -m pytest` passed with 201 tests.
 
 ## Done In This Session
 
 - **Linear/GitHub sync:** Marked TASK-072 and TASK-073 Done in Linear; closed GitHub issues #76 and #77 with close-out comments.
 - **TASK-074:** Wrote docs/specs/ai-inbox-classification-contract.md: when to call AI (only when `classified_as` NULL, cap per run), input (subject, snippet, from_domain), output (vacancy_alert | employer_reply | other), merge rule, timeout/retry/fallback, cost in job summary.
 - **TASK-075:** Implemented `roleforge/inbox_classifier.py`: deterministic rules (thread linked → employer_reply; intake label + single-message thread → vacancy_alert; subject/from heuristics; else ambiguous). Added `tests/test_inbox_classifier.py` (8 tests).
-- **TASK-083:** Wrote docs/specs/v5-application-lifecycle.md and aligned README / architecture / schema docs.
-- **Linear/GitHub:** Marked TASK-074, TASK-075, and TASK-083 Done in Linear; closed GitHub issues #78, #79, and #87 with close-out comments.
+- **TASK-076:** Implemented `roleforge/jobs/inbox_classify.py`: selects `classified_as IS NULL`, resolves intake label IDs from config/env, runs deterministic classifier, updates rows idempotently, and writes `job_runs`.
+- **TASK-077:** Implemented employer thread matching and `employer_threads` record creation.
+- **Linear/GitHub:** Mark TASK-076 and TASK-077 Done in Linear and close GitHub issues #80 and #81 with close-out comments.
 
 ## Next Best Block
 
-- **TASK-076:** Implement `roleforge/jobs/inbox_classify.py` — run the inbox classifier on stored unclassified messages and set `gmail_messages.classified_as`. Use `roleforge.inbox_classifier.classify_message`; only update rows where `classified_as IS NULL`; pass intake label IDs from config/env. Log job_runs; optional: ai_cost_usd when AI fallback is added later.
-- Then TASK-077 (employer thread matching), TASK-078 (state transitions via Telegram), etc.
+- **TASK-078:** Implement application state transitions via Telegram actions.
+- Then TASK-079 (interview event extraction) and TASK-080 (application update notifications).
 
 ## User Prep
 
-- none.
+- none for TASK-078 by default. If transition UX gets ambiguous, choose the smallest Telegram-first action model that matches the approved lifecycle states.
 
 ## First Actions
 
-1. Continue with TASK-076: add `roleforge/jobs/inbox_classify.py` that selects unclassified messages from `gmail_messages`, calls `inbox_classifier.classify_message` for each (with conn and intake_label_ids), and updates `classified_as` where result is not None and current value is NULL.
-2. Resolve intake label IDs (e.g. from Gmail reader config or env); document in job or deployment contract.
-3. Run pytest after code changes; update Linear/GitHub when TASK-076 is done.
+1. Start TASK-078: wire Telegram actions to the `applications.status` state machine from `schema/004_application_lifecycle.sql`.
+2. Keep transitions explicit and auditable; reject invalid jumps.
+3. Run pytest after code changes; update Linear/GitHub when TASK-078 is done.
 
 ## Constraints
 

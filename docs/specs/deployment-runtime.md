@@ -21,6 +21,8 @@ This spec defines the minimum deployment contract for the Gmail-only, Postgres-f
   - `python -m roleforge.jobs.batch` – micro-batch delivery path.
   - `python -m roleforge.jobs.monitor_poll` – HH.ru market monitoring sweep.
   - `python -m roleforge.jobs.replay` – manual replay helpers.
+  - `python -m roleforge.jobs.inbox_classify` – classify stored Gmail messages (set `gmail_messages.classified_as`); uses intake label from config (see below).
+  - `python -m roleforge.jobs.employer_thread_match` – create/update `employer_threads` by linking employer replies to applications via Gmail thread ID.
 - **Scheduling**: done either by the hosting platform/external scheduler or by the optional in-process `roleforge.scheduler` loop. RoleForge itself is stateless between runs and assumes Postgres as the source of truth.
 
 ## 2. Environment contract
@@ -43,7 +45,8 @@ The runtime reads configuration from environment variables. Local development ma
 - `GMAIL_CLIENT_ID` — OAuth client id.
 - `GMAIL_CLIENT_SECRET` — OAuth client secret.
 - `GMAIL_REFRESH_TOKEN` — long-lived refresh token for the intake account.
-- `GMAIL_INTAKE_LABEL` — label name or ID used for intake (see `gmail-intake-spec.md`).
+- `GMAIL_INTAKE_LABEL` — label name or ID used for intake (see `gmail-intake-spec.md`). Also used by the inbox classification job when `GMAIL_INTAKE_LABEL_IDS` is not set.
+- `GMAIL_INTAKE_LABEL_IDS` — optional; comma-separated Gmail label IDs for inbox classification (Rule 2: intake label + single-message thread → vacancy_alert). If not set, the inbox_classify job uses `GMAIL_INTAKE_LABEL` (resolved via Gmail API when credentials exist, else the value as single ID).
 - `GMAIL_POLL_INTERVAL_MINUTES` — polling cadence for the scheduler; default 15.
 - `FEED_POLL_INTERVAL_MINUTES` — polling cadence for feed intake; default 60.
 - `ALERT_POLL_INTERVAL_MINUTES` — polling cadence for threshold alerts; default 5.
